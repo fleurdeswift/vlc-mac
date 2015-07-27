@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:IOSurfaceModule/IOSurfaceModule.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:VLCKit/VLCKit.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:VLCTestApp/VLCTestApp.xcodeproj">
+   </FileRef>
+</Workspace>

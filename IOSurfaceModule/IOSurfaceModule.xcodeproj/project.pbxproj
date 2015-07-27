@@ -1,0 +1,263 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 47;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		7B4DA7911B64557B00B4DA1C /* iosurface.m in Sources */ = {isa = PBXBuildFile; fileRef = 7B4DA78F1B64557B00B4DA1C /* iosurface.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		7B4DA7881B6452F800B4DA1C /* libvout_iosurface_plugin.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libvout_iosurface_plugin.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		7B4DA78F1B64557B00B4DA1C /* iosurface.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iosurface.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7B4DA7851B6452F800B4DA1C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		7B4DA77F1B6452F800B4DA1C = {
+			isa = PBXGroup;
+			children = (
+				7B4DA78F1B64557B00B4DA1C /* iosurface.m */,
+				7B4DA7891B6452F800B4DA1C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7B4DA7891B6452F800B4DA1C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7B4DA7881B6452F800B4DA1C /* libvout_iosurface_plugin.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		7B4DA7861B6452F800B4DA1C /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		7B4DA7871B6452F800B4DA1C /* IOSurfaceModule */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7B4DA78C1B6452F800B4DA1C /* Build configuration list for PBXNativeTarget "IOSurfaceModule" */;
+			buildPhases = (
+				7B4DA7841B6452F800B4DA1C /* Sources */,
+				7B4DA7851B6452F800B4DA1C /* Frameworks */,
+				7B4DA7861B6452F800B4DA1C /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = IOSurfaceModule;
+			productName = IOSurfaceModule;
+			productReference = 7B4DA7881B6452F800B4DA1C /* libvout_iosurface_plugin.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7B4DA7801B6452F800B4DA1C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0700;
+				ORGANIZATIONNAME = "Fleur de Swift";
+				TargetAttributes = {
+					7B4DA7871B6452F800B4DA1C = {
+						CreatedOnToolsVersion = 7.0;
+					};
+				};
+			};
+			buildConfigurationList = 7B4DA7831B6452F800B4DA1C /* Build configuration list for PBXProject "IOSurfaceModule" */;
+			compatibilityVersion = "Xcode 6.3";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 7B4DA77F1B6452F800B4DA1C;
+			productRefGroup = 7B4DA7891B6452F800B4DA1C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7B4DA7871B6452F800B4DA1C /* IOSurfaceModule */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7B4DA7841B6452F800B4DA1C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7B4DA7911B64557B00B4DA1C /* iosurface.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		7B4DA78A1B6452F800B4DA1C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		7B4DA78B1B6452F800B4DA1C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		7B4DA78D1B6452F800B4DA1C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/VLCKit.framework/Versions/A/plugins";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@loader_path/../lib";
+				EXECUTABLE_PREFIX = lib;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					__PLUGIN__,
+				);
+				HEADER_SEARCH_PATHS = "$(VLC_DIR)/include";
+				LIBRARY_SEARCH_PATHS = "$(VLC_DIR)/lib";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				OTHER_LDFLAGS = "-lvlccore";
+				PRODUCT_MODULE_NAME = vout_iosurface_plugin;
+				PRODUCT_NAME = vout_iosurface_plugin;
+				VLC_DIR = "../External/vlc-2.2";
+			};
+			name = Debug;
+		};
+		7B4DA78E1B6452F800B4DA1C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/VLCKit.framework/Versions/A/plugins";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@loader_path/../lib";
+				EXECUTABLE_PREFIX = lib;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					__PLUGIN__,
+				);
+				HEADER_SEARCH_PATHS = "$(VLC_DIR)/include";
+				LIBRARY_SEARCH_PATHS = "$(VLC_DIR)/lib";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				OTHER_LDFLAGS = "-lvlccore";
+				PRODUCT_MODULE_NAME = vout_iosurface_plugin;
+				PRODUCT_NAME = vout_iosurface_plugin;
+				VLC_DIR = "../External/vlc-2.2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7B4DA7831B6452F800B4DA1C /* Build configuration list for PBXProject "IOSurfaceModule" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7B4DA78A1B6452F800B4DA1C /* Debug */,
+				7B4DA78B1B6452F800B4DA1C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7B4DA78C1B6452F800B4DA1C /* Build configuration list for PBXNativeTarget "IOSurfaceModule" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7B4DA78D1B6452F800B4DA1C /* Debug */,
+				7B4DA78E1B6452F800B4DA1C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7B4DA7801B6452F800B4DA1C /* Project object */;
+}
