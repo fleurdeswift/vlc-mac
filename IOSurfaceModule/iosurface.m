@@ -55,11 +55,14 @@ vlc_module_end ()
 - (void)ioSurfaceChanged;
 @end
 
-@interface VLCIOSurfaceWeak : NSObject
-@property (weak, nonatomic) id <VLCIOSurface> surface;
+@interface VLCIOStorage : NSObject {
+@public
+    __weak id <VLCIOSurface> surface;
+}
+
 @end
 
-@implementation VLCIOSurfaceWeak
+@implementation VLCIOStorage
 @end
 
 /*****************************************************************************
@@ -96,10 +99,10 @@ static int Open(vlc_object_t *object)
     vd->control = Control;
     vd->manage  = NULL;
 
-    VLCIOSurfaceWeak* storage = [[VLCIOSurfaceWeak alloc] init];
+    VLCIOStorage* storage = [[VLCIOStorage alloc] init];
 
-    sys->storage    = CFRetain((__bridge CFTypeRef)storage);
-    storage.surface = (__bridge id<VLCIOSurface>)var_InheritAddress(vd, "drawable-nsobject");
+    sys->storage     = CFRetain((__bridge CFTypeRef)storage);
+    storage->surface = (__bridge id<VLCIOSurface>)var_InheritAddress(vd, "drawable-nsobject");
     
     vout_display_DeleteWindow(vd, NULL);
     return VLC_SUCCESS;
@@ -226,8 +229,8 @@ static void Prepare(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
         for (int index = 0; index < picture->i_planes; index++) {
             [planes addObject:@{
                 (__bridge NSString*)kIOSurfacePlaneBytesPerRow:     @(picture->p[index].i_pitch),
-                (__bridge NSString*)kIOSurfacePlaneWidth:           @(picture->p[index].i_pitch / picture->p[index].i_pixel_pitch),
-                (__bridge NSString*)kIOSurfacePlaneHeight:          @(picture->p[index].i_lines),
+                (__bridge NSString*)kIOSurfacePlaneWidth:           @(picture->p[index].i_visible_pitch / picture->p[index].i_pixel_pitch),
+                (__bridge NSString*)kIOSurfacePlaneHeight:          @(picture->p[index].i_visible_lines),
                 (__bridge NSString*)kIOSurfacePlaneBytesPerElement: @(picture->p[index].i_pixel_pitch)
             }];
         }
@@ -235,17 +238,22 @@ static void Prepare(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
         sys->surface = IOSurfaceCreate((__bridge CFDictionaryRef)@{
             (__bridge NSString*)kIOSurfaceWidth:       @(picture->format.i_width),
             (__bridge NSString*)kIOSurfaceHeight:      @(picture->format.i_height),
-            //(__bridge NSString*)kIOSurfacePixelFormat: @(fourcc),
+            (__bridge NSString*)kIOSurfacePixelFormat: @(picture->format.i_chroma),
             (__bridge NSString*)kIOSurfacePlaneInfo:   planes
         });
         
         if (sys->surface) {
             sys->surface_hash = hash;
             
-            VLCIOSurfaceWeak* storage = (__bridge VLCIOSurfaceWeak *)sys->storage;
-            id <VLCIOSurface> remoteSurface = storage.surface;
+            VLCIOStorage* storage = (__bridge VLCIOStorage *)sys->storage;
             
-            remoteSurface.ioSurface = sys->surface;
+            if (storage) {
+                id <VLCIOSurface> remoteSurface = storage->surface;
+                
+                if (remoteSurface) {
+                    remoteSurface.ioSurface = sys->surface;
+                }
+            }
         }
     }
 
@@ -253,7 +261,6 @@ static void Prepare(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
 
 static void Display(vout_display_t *vd, picture_t *picture, subpicture_t *subpicture)
 {
-    VLC_UNUSED(vd);
     VLC_UNUSED(subpicture);
     
     vout_display_sys_t *sys = vd->sys;
@@ -269,8 +276,7 @@ static void Display(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
         IOSurfaceLock(sys->surface, 0, &seed);
         
         for (int index = 0; index < picture->i_planes; index++) {
-            void* dest = IOSurfaceGetBaseAddressOfPlane(sys->surface, index);
-            
+            void*  dest   = IOSurfaceGetBaseAddressOfPlane(sys->surface, index);
             size_t row    = IOSurfaceGetBytesPerRowOfPlane(sys->surface, index);
             size_t height = IOSurfaceGetHeightOfPlane(sys->surface, index);
             
@@ -279,10 +285,15 @@ static void Display(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
         
         IOSurfaceUnlock(sys->surface, 0, &seed);
         
-        VLCIOSurfaceWeak* storage = (__bridge VLCIOSurfaceWeak *)sys->storage;
-        id <VLCIOSurface> remoteSurface = storage.surface;
+        VLCIOStorage* storage = (__bridge VLCIOStorage *)sys->storage;
         
-        [remoteSurface ioSurfaceChanged];
+        if (storage) {
+            id <VLCIOSurface> remoteSurface = storage->surface;
+        
+            if (remoteSurface) {
+                [remoteSurface ioSurfaceChanged];
+            }
+        }
     }
     
     picture_Release(picture);

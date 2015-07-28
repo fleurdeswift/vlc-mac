@@ -59,36 +59,36 @@ static void VerifyShader(GLuint shader) {
     GLint logLength;
     GLint status;
 
-	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
-	if (logLength > 0) {
-		GLchar *log = (GLchar *)malloc(logLength);
-		glGetShaderInfoLog(shader, logLength, &logLength, log);
-		fprintf(stderr, "Shader compile log:\n%s", log);
-		free(log);
-	}
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+    if (logLength > 0) {
+        GLchar *log = (GLchar *)malloc(logLength);
+        glGetShaderInfoLog(shader, logLength, &logLength, log);
+        fprintf(stderr, "Shader compile log:\n%s", log);
+        free(log);
+    }
 
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-	if (status == 0) {
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+    if (status == 0) {
         [[NSException exceptionWithName:@"GL" reason:@"Fail to compile shader" userInfo:nil] raise];
-	}
+    }
 }
 
 static void VerifyProgram(GLuint program) {
     GLint logLength;
     GLint status;
 
-	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
-	if (logLength > 0) {
-		GLchar *log = (GLchar *)malloc(logLength);
-		glGetProgramInfoLog(program, logLength, &logLength, log);
-		fprintf(stderr, "Shader compile log:\n%s", log);
-		free(log);
-	}
+    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+    if (logLength > 0) {
+        GLchar *log = (GLchar *)malloc(logLength);
+        glGetProgramInfoLog(program, logLength, &logLength, log);
+        fprintf(stderr, "Shader compile log:\n%s", log);
+        free(log);
+    }
 
-	glGetProgramiv(program, GL_LINK_STATUS, &status);
-	if (status == 0) {
+    glGetProgramiv(program, GL_LINK_STATUS, &status);
+    if (status == 0) {
         [[NSException exceptionWithName:@"GL" reason:@"Fail to compile shader" userInfo:nil] raise];
-	}
+    }
 }
 
 static GLuint BuildVertexShader(size_t planes)
@@ -96,18 +96,41 @@ static GLuint BuildVertexShader(size_t planes)
     const char *vertexShader = NULL;
 
     /* Basic vertex shader */
-    vertexShader =
-        "#version " GLSL_VERSION "\n"
-        PRECISION
-        "uniform mat4 mvp;"
-        "in      vec2 VertexPosition;"
-        "in      vec2 MultiTexCoord0;"
-        "out     vec2 TexCoord0;"
+    if (planes == 3) {
+        vertexShader =
+            "#version " GLSL_VERSION "\n"
+            PRECISION
+            "uniform mat4 mvp;\n"
+            "uniform vec2 TexSize0;\n"
+            "uniform vec2 TexSize1;\n"
+            "uniform vec2 TexSize2;\n"
+            "in      vec2 VertexPosition;\n"
+            "in      vec2 MultiTexCoord0;\n"
+            "out     vec2 TexCoord0;\n"
+            "out     vec2 TexCoord1;\n"
+            "out     vec2 TexCoord2;\n"
 
-        "void main() {"
-        " TexCoord0   = MultiTexCoord0;"
-        " gl_Position = mvp * vec4(VertexPosition, 0.0, 1.0);"
-        "}";
+            "void main() {"
+            " TexCoord0   = MultiTexCoord0 * TexSize0;"
+            " TexCoord1   = MultiTexCoord0 * TexSize1;"
+            " TexCoord2   = MultiTexCoord0 * TexSize2;"
+            " gl_Position = mvp * vec4(VertexPosition, 0.0, 1.0);"
+            "}";
+    }
+    else {
+        vertexShader =
+            "#version " GLSL_VERSION "\n"
+            PRECISION
+            "uniform mat4 mvp;"
+            "in      vec2 VertexPosition;"
+            "in      vec2 MultiTexCoord0;"
+            "out     vec2 TexCoord0;"
+
+            "void main() {"
+            " TexCoord0   = MultiTexCoord0;"
+            " gl_Position = mvp * vec4(VertexPosition, 0.0, 1.0);"
+            "}";
+    }
 
     GLuint shader = glCreateShader(GL_VERTEX_SHADER);
     
@@ -128,13 +151,15 @@ static GLuint BuildYUVShader(size_t planes)
         "uniform sampler2DRect Texture2;\n"
         "uniform vec4          Coefficient[4];\n"
         "in      vec2          TexCoord0;\n"
+        "in      vec2          TexCoord1;\n"
+        "in      vec2          TexCoord2;\n"
         "out     vec4          FragColor;\n"
 
         "void main(void) {\n"
         " vec4 x,y,z,result;\n"
         " x  = vec4(vec3(texture(Texture0, TexCoord0).r), 1);\n"
-        " y  = vec4(vec3(texture(Texture1, TexCoord0).r), 1);\n"
-        " z  = vec4(vec3(texture(Texture2, TexCoord0).r), 1);\n"
+        " y  = vec4(vec3(texture(Texture1, TexCoord1).r), 1);\n"
+        " z  = vec4(vec3(texture(Texture2, TexCoord2).r), 1);\n"
 
         " result    =  x * Coefficient[0]  + Coefficient[3];\n"
         " result    = (y * Coefficient[1]) + result;\n"
@@ -201,7 +226,7 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
     NSOpenGLPixelFormat *pixelAttribs = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
 
     _boundsChanged = YES;
-	self = [super initWithFrame:rect pixelFormat:pixelAttribs];
+    self = [super initWithFrame:rect pixelFormat:pixelAttribs];
     self.wantsBestResolutionOpenGLSurface = YES;
     return self;
 }
@@ -221,8 +246,7 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
     [[self openGLContext] makeCurrentContext];
     
     if (_boundsChanged) {
-        CGRect bounds = self.bounds;
-        
+        CGRect bounds = [self convertRectToBacking:[self bounds]];
         GL_CHECK(glViewport, 0, 0, (GLint)bounds.size.width, (GLint)bounds.size.height);
         _boundsChanged = NO;
     }
@@ -235,7 +259,7 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
     }
     
     [self render];
-	[[self openGLContext] flushBuffer];
+    [[self openGLContext] flushBuffer];
 }
 
 - (void)render {
@@ -250,7 +274,7 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
 }
 
 - (BOOL)isOpaque {
-	return YES;
+    return YES;
 }
 
 - (IOSurfaceRef)ioSurface {
@@ -326,6 +350,9 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
                 GL_CHECK(glUniform1i,  glGetUniformLocation(_program, "Texture0"), 0);
                 GL_CHECK(glUniform1i,  glGetUniformLocation(_program, "Texture1"), 1);
                 GL_CHECK(glUniform1i,  glGetUniformLocation(_program, "Texture2"), 2);
+                GL_CHECK(glUniform2f,  glGetUniformLocation(_program, "TexSize0"), IOSurfaceGetWidthOfPlane(ioSurface, 0), IOSurfaceGetHeightOfPlane(ioSurface, 0));
+                GL_CHECK(glUniform2f,  glGetUniformLocation(_program, "TexSize1"), IOSurfaceGetWidthOfPlane(ioSurface, 1), IOSurfaceGetHeightOfPlane(ioSurface, 1));
+                GL_CHECK(glUniform2f,  glGetUniformLocation(_program, "TexSize2"), IOSurfaceGetWidthOfPlane(ioSurface, 2), IOSurfaceGetHeightOfPlane(ioSurface, 2));
             }
             else if (_textureCount == 1) {
                 GL_CHECK(glUniform1i, glGetUniformLocation(_program, "Texture0"), 0);
@@ -335,10 +362,10 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
 
             static GLfloat quad[] = {
                 //x, y            s, t
-                -1.0f, -1.0f,     0.0f, 0.0f,
-                 1.0f, -1.0f,     1280.0f, 0.0f,
-                -1.0f,  1.0f,     0.0f, 720.0f,
-                 1.0f,  1.0f,     1280.0f, 720.0f
+                -1.0f, -1.0f,     0.0f, 1.0f,
+                 1.0f, -1.0f,     1.0f, 1.0f,
+                -1.0f,  1.0f,     0.0f, 0.0f,
+                 1.0f,  1.0f,     1.0f, 0.0f
             };
             
             if (_quadVAOId == 0) {
@@ -360,6 +387,7 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
 - (void)ioSurfaceChanged {
     dispatch_async(dispatch_get_main_queue(), ^{
         self.needsDisplay = YES;
+        [self displayIfNeededIgnoringOpacity];
     });
 }
 
