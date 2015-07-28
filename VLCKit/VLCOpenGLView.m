@@ -408,7 +408,7 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
             
             GL_CHECK(glUniformMatrix4fv, glGetUniformLocation(_program, "mvp"), 1, GL_FALSE, identity);
 
-            static GLfloat quad[] = {
+            static const GLfloat quad[] = {
                 // x, y           s, t
                 -1.0f, -1.0f,     0.0f, 1.0f,
                  1.0f, -1.0f,     1.0f, 1.0f,
@@ -428,8 +428,19 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
             GL_CHECK(glVertexAttribPointer, glGetAttribLocation(_program, "MultiTexCoord0"), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (const GLvoid*)(2 * sizeof(GLfloat)));
             
             self.needsDisplay = YES;
+            [self invalidateIntrinsicContentSize];
+            [[self superview] invalidateIntrinsicContentSize];
         }
     });
+}
+
+- (NSSize)intrinsicContentSize {
+    if (_ioSurface == nil) {
+        return NSMakeSize(320, 200);
+    }
+    
+    NSSize size = NSMakeSize(IOSurfaceGetWidth(_ioSurface), IOSurfaceGetHeight(_ioSurface));
+    return [self convertSizeFromBacking:size];
 }
 
 - (void)ioSurfaceChanged {

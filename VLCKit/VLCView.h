@@ -7,12 +7,9 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import "VLCIOSurface.h"
-
 @class VLCMediaPlayer;
 
 @interface VLCView : NSView
-
 @property (nonatomic, retain) VLCMediaPlayer* mediaPlayer;
-
+@property (nonatomic, retain) NSColor *backgroundColor;
 @end

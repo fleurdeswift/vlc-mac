@@ -15,6 +15,15 @@
     id <VLCIOSurface> _surface;
 }
 
+- (void)_setupSurfaceView {
+    NSRect         bounds  = self.bounds;
+    VLCOpenGLView* surface = [[VLCOpenGLView alloc] initWithFrame:NSMakeRect(0, 0, bounds.size.width, bounds.size.height)];
+    
+    _backgroundColor = [NSColor blackColor];
+    _surface         = surface;
+    [self addSubview:surface];
+}
+
 - (instancetype)initWithFrame:(NSRect)rect {
     self = [super initWithFrame:rect];
     
@@ -22,10 +31,7 @@
         return nil;
     }
     
-    VLCOpenGLView* surface = [[VLCOpenGLView alloc] initWithFrame:NSMakeRect(0, 0, rect.size.width, rect.size.height)];
-    
-    _surface = surface;
-    [self addSubview:surface];
+    [self _setupSurfaceView];
     return self;
 }
 
@@ -36,17 +42,39 @@
         return nil;
     }
     
-    NSRect bounds = self.bounds;
-    VLCOpenGLView* surface = [[VLCOpenGLView alloc] initWithFrame:NSMakeRect(0, 0, bounds.size.width, bounds.size.height)];
-    
-    _surface = surface;
-    [self addSubview:surface];
+    [self _setupSurfaceView];
     return self;
 }
 
 - (void)setFrame:(NSRect)frame {
     [super setFrame:frame];
-    [(NSView*)_surface setFrame:self.bounds];
+
+    NSView* surface = (NSView*)_surface;
+    NSRect  surfaceRect;
+    NSSize  size    = surface.intrinsicContentSize;
+    CGFloat ratio   = size.width       / size.height;
+    CGFloat ratioW  = frame.size.width / frame.size.height;
+    
+    if (ratio >= ratioW) {
+        surfaceRect.size.height = frame.size.width * (1.0f / ratio);
+        surfaceRect.origin.y    = (frame.size.height - surfaceRect.size.height) / 2.0f;
+
+        surfaceRect.origin.x    = 0;
+        surfaceRect.size.width  = frame.size.width;
+    }
+    else {
+        surfaceRect.size.width  = frame.size.height * ratio;
+        surfaceRect.origin.x    = (frame.size.width - surfaceRect.size.width) / 2.0f;
+
+        surfaceRect.origin.y    = 0;
+        surfaceRect.size.height = frame.size.height;
+    }
+    
+    surfaceRect.origin.x    = floor(surfaceRect.origin.x);
+    surfaceRect.origin.y    = floor(surfaceRect.origin.y);
+    surfaceRect.size.width  = ceil(surfaceRect.size.width);
+    surfaceRect.size.height = ceil(surfaceRect.size.height);
+    [(NSView*)_surface setFrame:surfaceRect];
 }
 
 - (void)setMediaPlayer:(VLCMediaPlayer *)mediaPlayer {
@@ -58,6 +86,15 @@
     CFTypeRef surface = (__bridge CFTypeRef)_surface;
     
     libvlc_media_player_set_nsobject(mediaPlayer.impl, (void*)surface);
+}
+
+- (NSSize)intrinsicContentSize {
+    return ((NSView *)_surface).intrinsicContentSize;
+}
+
+- (void)drawRect:(NSRect)dirtyRect {
+    [_backgroundColor setFill];
+    NSRectFill(dirtyRect);
 }
 
 @end
