@@ -110,31 +110,53 @@ static GLuint BuildVertexShader(size_t planes)
             "out     vec2 TexCoord1;\n"
             "out     vec2 TexCoord2;\n"
 
-            "void main() {"
-            " TexCoord0   = MultiTexCoord0 * TexSize0;"
-            " TexCoord1   = MultiTexCoord0 * TexSize1;"
-            " TexCoord2   = MultiTexCoord0 * TexSize2;"
-            " gl_Position = mvp * vec4(VertexPosition, 0.0, 1.0);"
+            "void main() {\n"
+            " TexCoord0   = MultiTexCoord0 * TexSize0;\n"
+            " TexCoord1   = MultiTexCoord0 * TexSize1;\n"
+            " TexCoord2   = MultiTexCoord0 * TexSize2;\n"
+            " gl_Position = mvp * vec4(VertexPosition, 0.0, 1.0);\n"
             "}";
     }
     else {
         vertexShader =
             "#version " GLSL_VERSION "\n"
             PRECISION
-            "uniform mat4 mvp;"
-            "in      vec2 VertexPosition;"
-            "in      vec2 MultiTexCoord0;"
-            "out     vec2 TexCoord0;"
+            "uniform mat4 mvp;\n"
+            "uniform vec2 TexSize0;\n"
+            "in      vec2 VertexPosition;\n"
+            "in      vec2 MultiTexCoord0;\n"
+            "out     vec2 TexCoord0;\n"
 
-            "void main() {"
-            " TexCoord0   = MultiTexCoord0;"
-            " gl_Position = mvp * vec4(VertexPosition, 0.0, 1.0);"
+            "void main() {\n"
+            " TexCoord0   = MultiTexCoord0 * TexSize0;\n"
+            " gl_Position = mvp * vec4(VertexPosition, 0.0, 1.0);\n"
             "}";
     }
 
     GLuint shader = glCreateShader(GL_VERTEX_SHADER);
     
     GL_CHECK(glShaderSource,  shader, 1, &vertexShader, NULL);
+    GL_CHECK(glCompileShader, shader);
+    
+    VerifyShader(shader);
+    return shader;
+}
+
+static GLuint BuildRGBAShader(size_t planes) {
+   const char *pixelShader =
+        "#version " GLSL_VERSION "\n"
+        PRECISION
+        "uniform sampler2DRect Texture0;\n"
+        "in      vec2          TexCoord0;\n"
+        "out     vec4          FragColor;\n"
+
+        "void main(void) {\n"
+        " FragColor = texture(Texture0, TexCoord0);\n"
+        "}";
+
+    GLuint shader = glCreateShader(GL_FRAGMENT_SHADER);
+    
+    GL_CHECK(glShaderSource,  shader, 1, &pixelShader, NULL);
     GL_CHECK(glCompileShader, shader);
     
     VerifyShader(shader);
@@ -310,7 +332,24 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
             GL_CHECK(glGenTextures, _textureCount, _textures);
 
             CGLContextObj context = (CGLContextObj)[contextNS CGLContextObj];
-            CGLError error;
+            CGLError      error;
+            
+            OSType pixelFormat    = IOSurfaceGetPixelFormat(ioSurface);
+            GLint  internalFormat = GL_RED;
+            GLint  format         = GL_RED;
+            GLint  type           = GL_UNSIGNED_BYTE;
+            BOOL   rgb            = _textureCount == 1;
+            
+            switch (pixelFormat) {
+            case 'BGRA':
+                internalFormat = GL_RGB;
+                format         = GL_BGRA;
+                type           = GL_UNSIGNED_INT_8_8_8_8_REV;
+                break;
+                
+            default:
+                break;
+            }
             
             for (GLsizei index = 0; index < _textureCount; index++) {
                 GLsizei height = (GLsizei)IOSurfaceGetHeightOfPlane(ioSurface, index);
@@ -318,7 +357,7 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
                 
                 GL_CHECK(glBindTexture, GL_TEXTURE_RECTANGLE, _textures[index]);
 
-                error = CGLTexImageIOSurface2D(context, GL_TEXTURE_RECTANGLE, GL_RED, width, height, GL_RED, GL_UNSIGNED_BYTE, ioSurface, index);
+                error = CGLTexImageIOSurface2D(context, GL_TEXTURE_RECTANGLE, internalFormat, width, height, format, type, ioSurface, index);
                 
                 if (error != kCGLNoError) {
                     [NSException exceptionWithName:@"CGL" reason:[NSString stringWithFormat:@"CoreGL error %x", error] userInfo:nil];
@@ -330,10 +369,16 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
                 GL_CHECK(glTexParameteri, GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             }
             
-            _vertexShader   = BuildVertexShader(_textureCount);
-            _fragmentShader = BuildYUVShader(_textureCount);
-            _program        = glCreateProgram();
+            _vertexShader = BuildVertexShader(_textureCount);
             
+            if (rgb) {
+                _fragmentShader = BuildRGBAShader(_textureCount);
+            }
+            else {
+                _fragmentShader = BuildYUVShader(_textureCount);
+            }
+            
+            _program = glCreateProgram();
             GL_CHECK(glAttachShader, _program, _vertexShader);
             GL_CHECK(glAttachShader, _program, _fragmentShader);
             GL_CHECK(glLinkProgram, _program);
@@ -342,9 +387,14 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
             GL_CHECK(glUseProgram, _program);
             
             if (_textureCount == 3) {
-                GLfloat values[16];
-            
-                BuildCoefficientTable(IOSurfaceGetHeightOfPlane(ioSurface, 0), 1.0, values);
+                GLfloat   values[16];
+                CFTypeRef yuvRangeCorrection = IOSurfaceCopyValue(ioSurface, CFSTR("YUVCorrection"));
+                float     yuvRangeCorrectionF;
+                
+                CFNumberGetValue(yuvRangeCorrection, kCFNumberFloatType, &yuvRangeCorrectionF);
+                CFRelease(yuvRangeCorrection);
+
+                BuildCoefficientTable(IOSurfaceGetHeightOfPlane(ioSurface, 0), yuvRangeCorrectionF, values);
             
                 GL_CHECK(glUniform4fv, glGetUniformLocation(_program, "Coefficient"), 4, values);
                 GL_CHECK(glUniform1i,  glGetUniformLocation(_program, "Texture0"), 0);
@@ -356,6 +406,7 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
             }
             else if (_textureCount == 1) {
                 GL_CHECK(glUniform1i, glGetUniformLocation(_program, "Texture0"), 0);
+                GL_CHECK(glUniform2f, glGetUniformLocation(_program, "TexSize0"), IOSurfaceGetWidthOfPlane(ioSurface, 0), IOSurfaceGetHeightOfPlane(ioSurface, 0));
             }
             
             GL_CHECK(glUniformMatrix4fv, glGetUniformLocation(_program, "mvp"), 1, GL_FALSE, identity);

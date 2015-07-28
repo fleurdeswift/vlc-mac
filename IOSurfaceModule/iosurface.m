@@ -65,6 +65,8 @@ vlc_module_end ()
 @implementation VLCIOStorage
 @end
 
+typedef void (*ConvertFunc)(void* dest, const void* src, size_t row, size_t height);
+
 /*****************************************************************************
  * Local prototypes
  *****************************************************************************/
@@ -73,6 +75,7 @@ struct vout_display_sys_t {
     CFTypeRef     storage;
     IOSurfaceRef  surface;
     uint64_t      surface_hash;
+    ConvertFunc   convert_func;
 };
 
 static picture_pool_t* Pool   (vout_display_t *, unsigned count);
@@ -135,61 +138,6 @@ static picture_pool_t *Pool(vout_display_t *vd, unsigned count)
     return sys->pool;
 }
 
-static IOSurfaceRef SurfaceForFormat(vout_display_sys_t sys, picture_t* picture)
-{
-#if 0
-    if (vlc_fourcc_IsYUV(fmt->i_chroma)) {
-        const vlc_fourcc_t *list = vlc_fourcc_GetYUVFallback(fmt->i_chroma);
-        
-        while (*list) {
-            const vlc_chroma_description_t *dsc = vlc_fourcc_GetChromaDescription(*list);
-            
-            if (dsc && dsc->plane_count == 3 && dsc->pixel_size == 1) {
-                need_fs_yuv       = true;
-                vgl->fmt          = *fmt;
-                vgl->fmt.i_chroma = *list;
-                vgl->tex_format   = GL_LUMINANCE;
-                vgl->tex_internal = GL_LUMINANCE;
-                vgl->tex_type     = GL_UNSIGNED_BYTE;
-                yuv_range_correction = 1.0;
-                break;
-#if !USE_OPENGL_ES
-            } else if (dsc && dsc->plane_count == 3 && dsc->pixel_size == 2 &&
-                       IsLuminance16Supported(vgl->tex_target)) {
-                need_fs_yuv       = true;
-                vgl->fmt          = *fmt;
-                vgl->fmt.i_chroma = *list;
-                vgl->tex_format   = GL_LUMINANCE;
-                vgl->tex_internal = GL_LUMINANCE16;
-                vgl->tex_type     = GL_UNSIGNED_SHORT;
-                yuv_range_correction = (float)((1 << 16) - 1) / ((1 << dsc->pixel_bits) - 1);
-                break;
-#endif
-            }
-            list++;
-        }
-    }
-
-    NSArray *planes = @[];
-
-    //for (int index = 0; index < fmt)
-    
-    return IOSurfaceCreate((__bridge CFDictionaryRef)@{
-        (__bridge NSString*)kIOSurfaceWidth:       @(fmt->i_width),
-        (__bridge NSString*)kIOSurfaceHeight:      @(fmt->i_height),
-        (__bridge NSString*)kIOSurfacePixelFormat: @(fmt->i_chroma),
-        (__bridge NSString*)kIOSurfacePlaneInfo:   planes
-    });
-#endif
-    return NULL;
-}
-
-struct PictureHash {
-    unsigned width:  16;
-    unsigned height: 16;
-    unsigned planes: 4;
-};
-
 static uint64_t HashPictureFormat(picture_t* picture)
 {
     uint64_t n;
@@ -203,6 +151,42 @@ static uint64_t HashPictureFormat(picture_t* picture)
 
     n ^= picture->format.i_chroma;
     return n;
+}
+
+static void rgb24_to_bgr32(void* dest, const void* src, size_t row, size_t height) {
+    unsigned char* destb = (unsigned char*)dest;
+    unsigned char* srcb  = (unsigned char*)src;
+
+    for (size_t y = 0; y < height; y++) {
+        size_t x;
+    
+        for (x = 0; x < row; x += 3, srcb += 3, destb += 4) {
+            destb[0] = srcb[2];
+            destb[1] = srcb[1];
+            destb[2] = srcb[0];
+            destb[3] = 0xff;
+        }
+        
+        srcb -= (x - row);
+    }
+}
+
+static void bgr24_to_bgr32(void* dest, const void* src, size_t row, size_t height) {
+    unsigned char* destb = (unsigned char*)dest;
+    unsigned char* srcb  = (unsigned char*)src;
+
+    for (size_t y = 0; y < height; y++) {
+        size_t x;
+    
+        for (x = 0; x < row; x += 3, srcb += 3, destb += 4) {
+            destb[0] = srcb[0];
+            destb[1] = srcb[1];
+            destb[2] = srcb[2];
+            destb[3] = 0xff;
+        }
+        
+        srcb -= (x - row);
+    }
 }
 
 static void Prepare(vout_display_t *vd, picture_t *picture, subpicture_t *subpicture)
@@ -226,25 +210,77 @@ static void Prepare(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
     
         NSMutableArray *planes = [NSMutableArray arrayWithCapacity:picture->i_planes];
 
+        vlc_fourcc_t fourcc             = picture->format.i_chroma;
+        int          divisor            = 1;
+        int          multiplicator      = 1;
+        float        yuvRangeCorrection = 1.0f;
+
+        sys->convert_func = NULL;
+        
+        if (vlc_fourcc_IsYUV(fourcc)) {
+            const vlc_fourcc_t *list = vlc_fourcc_GetYUVFallback(fourcc);
+            
+            while (*list) {
+                const vlc_chroma_description_t *dsc = vlc_fourcc_GetChromaDescription(*list);
+                
+                if (dsc && dsc->plane_count == 3 && dsc->pixel_size == 1) {
+                    break;
+                }
+                else if (dsc && dsc->plane_count == 3 && dsc->pixel_size == 2) {
+                    yuvRangeCorrection = (float)((1 << 16) - 1) / ((1 << dsc->pixel_bits) - 1);
+                    break;
+                }
+                
+                list++;
+            }
+        }
+        else if (fourcc == VLC_CODEC_XYZ12) {
+            // Nothing special to. It will be the renderer's job to process that pixel format
+            // specificity.
+        }
+        else {
+            if (picture->format.i_bits_per_pixel == 24) {
+                // IOSurface is litterally unable to process pixels that aren't memory aligned. 24-bits pixels
+                // is never going to work. The CPU will have to perform the translation. The rest can be done
+                // directly on the GPU.
+                if (fourcc == VLC_CODEC_RGB24) {
+                    sys->convert_func = rgb24_to_bgr32;
+                }
+                else {
+                    sys->convert_func = bgr24_to_bgr32;
+                }
+                
+                fourcc        = VLC_CODEC_BGRA;
+                divisor       = 3;
+                multiplicator = 4;
+            }
+        }
+        
         for (int index = 0; index < picture->i_planes; index++) {
             [planes addObject:@{
-                (__bridge NSString*)kIOSurfacePlaneBytesPerRow:     @(picture->p[index].i_pitch),
-                (__bridge NSString*)kIOSurfacePlaneWidth:           @(picture->p[index].i_visible_pitch / picture->p[index].i_pixel_pitch),
+                (__bridge NSString*)kIOSurfacePlaneBytesPerElement: @(picture->p[index].i_pixel_pitch / divisor * multiplicator),
+                (__bridge NSString*)kIOSurfacePlaneBytesPerRow:     @(picture->p[index].i_pitch       / divisor * multiplicator),
                 (__bridge NSString*)kIOSurfacePlaneHeight:          @(picture->p[index].i_visible_lines),
-                (__bridge NSString*)kIOSurfacePlaneBytesPerElement: @(picture->p[index].i_pixel_pitch)
+                (__bridge NSString*)kIOSurfacePlaneWidth:           @(picture->p[index].i_visible_pitch / picture->p[index].i_pixel_pitch)
             }];
         }
         
         sys->surface = IOSurfaceCreate((__bridge CFDictionaryRef)@{
             (__bridge NSString*)kIOSurfaceWidth:       @(picture->format.i_width),
             (__bridge NSString*)kIOSurfaceHeight:      @(picture->format.i_height),
-            (__bridge NSString*)kIOSurfacePixelFormat: @(picture->format.i_chroma),
+            (__bridge NSString*)kIOSurfacePixelFormat: @(CFSwapInt32BigToHost(fourcc)),
             (__bridge NSString*)kIOSurfacePlaneInfo:   planes
         });
         
         if (sys->surface) {
             sys->surface_hash = hash;
             
+            IOSurfaceSetValues(sys->surface, (__bridge CFDictionaryRef)@{
+                @"AspectRatioNum": @(picture->format.i_sar_num),
+                @"AspectRatioDen": @(picture->format.i_sar_den),
+                @"YUVCorrection":  @(yuvRangeCorrection)
+            });
+
             VLCIOStorage* storage = (__bridge VLCIOStorage *)sys->storage;
             
             if (storage) {
@@ -280,7 +316,12 @@ static void Display(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
             size_t row    = IOSurfaceGetBytesPerRowOfPlane(sys->surface, index);
             size_t height = IOSurfaceGetHeightOfPlane(sys->surface, index);
             
-            memcpy(dest, picture->p[index].p_pixels, row * height);
+            if (sys->convert_func) {
+                sys->convert_func(dest, picture->p[index].p_pixels, picture->p[index].i_pitch, height);
+            }
+            else {
+                memcpy(dest, picture->p[index].p_pixels, row * height);
+            }
         }
         
         IOSurfaceUnlock(sys->surface, 0, &seed);
