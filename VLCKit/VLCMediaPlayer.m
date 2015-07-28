@@ -44,6 +44,46 @@
     libvlc_media_player_play(_player);
 }
 
+- (void)stop {
+    libvlc_media_player_stop(_player);
+}
+
+- (void)pause {
+    libvlc_media_player_pause(_player);
+}
+
+- (NSTimeInterval)duration {
+    return libvlc_media_player_get_length(_player) / 1000.0f;
+}
+
+- (NSTimeInterval)time {
+    return libvlc_media_player_get_time(_player) / 1000.0f;
+}
+
+- (void)setTime:(NSTimeInterval)newTime {
+    libvlc_media_player_set_time(_player, (libvlc_time_t)(newTime * 1000));
+}
+
+- (float)position {
+    return libvlc_media_player_get_position(_player);
+}
+
+- (void)setPosition:(float)newPosition {
+    libvlc_media_player_set_position(_player, newPosition);
+}
+
+- (BOOL)seekable {
+    return libvlc_media_player_is_seekable(_player)? true: false;
+}
+
+- (BOOL)mute {
+    return libvlc_audio_get_mute(_player)? true: false;
+}
+
+- (void)setMute:(BOOL)mute {
+    libvlc_audio_set_mute(_player, mute);
+}
+
 @end
 
 @implementation VLCMediaPlayer (Private)

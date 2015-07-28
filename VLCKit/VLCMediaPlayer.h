@@ -12,9 +12,18 @@
 @interface VLCMediaPlayer : NSObject
 - (nullable instancetype)initWithMedia:(nonnull VLCMedia*)media error:(out NSError * __nullable * __nullable)error;
 
-@property (nonatomic, readonly) BOOL playing;
 @property (nonatomic, readonly, nullable) VLCMedia* media;
 
+@property (nonatomic, readonly) BOOL playing;
+@property (nonatomic, readonly) NSTimeInterval duration;
+@property (nonatomic) NSTimeInterval time;
+@property (nonatomic) float position;
+@property (nonatomic, readonly) BOOL seekable;
+
 - (void)play;
+- (void)stop;
+- (void)pause;
+
+@property (nonatomic) BOOL mute;
 
 @end
