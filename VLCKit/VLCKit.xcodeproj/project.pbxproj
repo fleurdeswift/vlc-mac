@@ -316,6 +316,8 @@
 		7B5BDDC11B64647000003FE7 /* VLC.m in Sources */ = {isa = PBXBuildFile; fileRef = 7B5BDDBF1B64647000003FE7 /* VLC.m */; };
 		7B5BDDC81B64760B00003FE7 /* VLCMediaPlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B5BDDC61B64760B00003FE7 /* VLCMediaPlayer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		7B5BDDC91B64760B00003FE7 /* VLCMediaPlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7B5BDDC71B64760B00003FE7 /* VLCMediaPlayer.m */; };
+		7B5DD3431B681C6A00F9EEF1 /* VLCOpenGLView.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B5DD3411B681C6A00F9EEF1 /* VLCOpenGLView.h */; };
+		7B5DD3441B681C6A00F9EEF1 /* VLCOpenGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 7B5DD3421B681C6A00F9EEF1 /* VLCOpenGLView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -953,6 +955,8 @@
 		7B5BDDC61B64760B00003FE7 /* VLCMediaPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VLCMediaPlayer.h; sourceTree = "<group>"; };
 		7B5BDDC71B64760B00003FE7 /* VLCMediaPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VLCMediaPlayer.m; sourceTree = "<group>"; };
 		7B5BDDCA1B64761B00003FE7 /* VLCMediaPlayer+Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "VLCMediaPlayer+Private.h"; sourceTree = "<group>"; };
+		7B5DD3411B681C6A00F9EEF1 /* VLCOpenGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VLCOpenGLView.h; sourceTree = "<group>"; };
+		7B5DD3421B681C6A00F9EEF1 /* VLCOpenGLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VLCOpenGLView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -990,6 +994,7 @@
 				7B5BDDBE1B64647000003FE7 /* VLC.h */,
 				7B5BDDBF1B64647000003FE7 /* VLC.m */,
 				7B5BDDC41B6468DE00003FE7 /* VLC+Private.h */,
+				7B11F8D51B65B34200DCF97E /* VLCIOSurface.h */,
 				7B4DA7A01B645A4300B4DA1C /* VLCKit.h */,
 				7B5BDDBA1B6463EE00003FE7 /* VLCMedia.h */,
 				7B5BDDBB1B6463EE00003FE7 /* VLCMedia.m */,
@@ -997,9 +1002,10 @@
 				7B5BDDC61B64760B00003FE7 /* VLCMediaPlayer.h */,
 				7B5BDDC71B64760B00003FE7 /* VLCMediaPlayer.m */,
 				7B5BDDCA1B64761B00003FE7 /* VLCMediaPlayer+Private.h */,
+				7B5DD3411B681C6A00F9EEF1 /* VLCOpenGLView.h */,
+				7B5DD3421B681C6A00F9EEF1 /* VLCOpenGLView.m */,
 				7B4DA7AE1B645AF700B4DA1C /* VLCView.h */,
 				7B4DA7AF1B645AF700B4DA1C /* VLCView.m */,
-				7B11F8D51B65B34200DCF97E /* VLCIOSurface.h */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -1345,6 +1351,7 @@
 			files = (
 				7B5BDDC01B64647000003FE7 /* VLC.h in Headers */,
 				7B5BDDC81B64760B00003FE7 /* VLCMediaPlayer.h in Headers */,
+				7B5DD3431B681C6A00F9EEF1 /* VLCOpenGLView.h in Headers */,
 				7B5BDDBC1B6463EE00003FE7 /* VLCMedia.h in Headers */,
 				7B4DA7A11B645A4300B4DA1C /* VLCKit.h in Headers */,
 				7B11F8D61B65B34200DCF97E /* VLCIOSurface.h in Headers */,
@@ -1427,6 +1434,7 @@
 				7B5BDDC91B64760B00003FE7 /* VLCMediaPlayer.m in Sources */,
 				7B5BDDBD1B6463EE00003FE7 /* VLCMedia.m in Sources */,
 				7B4DA7B11B645AF700B4DA1C /* VLCView.m in Sources */,
+				7B5DD3441B681C6A00F9EEF1 /* VLCOpenGLView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
