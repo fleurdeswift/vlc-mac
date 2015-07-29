@@ -8,4 +8,5 @@
 @protocol VLCIOSurface
 @property (nonatomic, assign) IOSurfaceRef ioSurface;
 - (void)ioSurfaceChanged;
+- (void)captureNextFrame:(void (^)(CGImageRef frame))captureBlock;
 @end

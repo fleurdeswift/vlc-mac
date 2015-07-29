@@ -52,12 +52,41 @@
     libvlc_media_player_pause(_player);
 }
 
+- (BOOL)paused {
+    return !self.paused;
+}
+
+- (void)setPaused:(BOOL)paused {
+    libvlc_media_player_set_pause(_player, paused);
+}
+
 - (NSTimeInterval)duration {
     return libvlc_media_player_get_length(_player) / 1000.0f;
 }
 
 - (NSTimeInterval)time {
-    return libvlc_media_player_get_time(_player) / 1000.0f;
+    libvlc_time_t t = libvlc_media_player_get_time(_player);
+    
+    if (t < 0) {
+        return -1;
+    }
+
+    return t / 1000.0f;
+}
+
+- (void)setTime:(NSTimeInterval)newTime completionBlock:(dispatch_block_t)block {
+    libvlc_media_player_set_time(_player, (libvlc_time_t)(newTime * 1000));
+
+    dispatch_source_t timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
+    dispatch_source_set_timer(timer, dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_MSEC), NSEC_PER_MSEC, NSEC_PER_MSEC);
+    dispatch_source_set_event_handler(timer, ^{
+        if (self.time >= newTime) {
+            block();
+            dispatch_source_cancel(timer);
+        }
+    });
+    
+    dispatch_resume(timer);
 }
 
 - (void)setTime:(NSTimeInterval)newTime {

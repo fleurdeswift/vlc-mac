@@ -15,6 +15,7 @@
 
 #import "VLCMediaPlayer.h"
 #import "VLCMediaPlayer+Private.h"
+#import "YUV.h"
 
 #if USE_OPENGL_ES
 #   define GLSL_VERSION "100"
@@ -31,6 +32,13 @@ static const GLfloat identity[] = {
     0.0f, 0.0f, 0.0f, 1.0f
 };
 
+static const GLfloat ymirror[] = {
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, -1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 1.0f
+};
+
 static void GLcheck() {
     GLenum err = glGetError();
     
@@ -43,6 +51,9 @@ static void GLcheck() {
             break;
         case GL_INVALID_OPERATION:
             desc = @"OpenGL error GL_INVALID_OPERATION";
+            break;
+        case GL_INVALID_VALUE:
+            desc = @"OpenGL error GL_INVALID_VALUE";
             break;
         default:
             desc = [NSString stringWithFormat:@"OpenGL error %x", (int)err];
@@ -197,30 +208,6 @@ static GLuint BuildYUVShader(size_t planes)
     return shader;
 }
 
-static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat* values) {
-    static const float matrix_bt601_tv2full[12] = {
-        1.164383561643836,  0.0000,             1.596026785714286, -0.874202217873451 ,
-        1.164383561643836, -0.391762290094914, -0.812967647237771,  0.531667823499146 ,
-        1.164383561643836,  2.017232142857142,  0.0000,            -1.085630789302022 ,
-    };
-    
-    static const float matrix_bt709_tv2full[12] = {
-        1.164383561643836,  0.0000,             1.792741071428571, -0.972945075016308 ,
-        1.164383561643836, -0.21324861427373,  -0.532909328559444,  0.301482665475862 ,
-        1.164383561643836,  2.112401785714286,  0.0000,            -1.133402217873451 ,
-    };
-    
-    const float *matrix = height > 576 ? matrix_bt709_tv2full: matrix_bt601_tv2full;
-
-    for (int i = 0; i < 4; i++) {
-        float correction = i < 3? rangeCorrection: 1.f;
-        
-        for (int j = 0; j < 4; j++) {
-            values[i * 4 + j] = j < 3 ? correction * matrix[j * 4 + i]: 0.f;
-        }
-    }
-}
-
 @implementation VLCOpenGLView {
     IOSurfaceRef _ioSurface;
     GLsizei      _textureCount;
@@ -231,6 +218,8 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
     GLuint       _fragmentShader;
     GLuint       _program;
     BOOL         _boundsChanged;
+    
+    void (^_nextFrameCapture)(CGImageRef frame);
 }
 
 - (instancetype)initWithFrame:(NSRect)rect {
@@ -260,19 +249,23 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
     _boundsChanged = YES;
 }
 
+- (void)_updateViewport {
+    CGRect bounds = [self convertRectToBacking:[self bounds]];
+    GL_CHECK(glViewport, 0, 0, (GLint)bounds.size.width, (GLint)bounds.size.height);
+    _boundsChanged = NO;
+}
+
 - (void)drawRect:(NSRect)theRect
 {
     [[self openGLContext] makeCurrentContext];
     
     if (_boundsChanged) {
-        CGRect bounds = [self convertRectToBacking:[self bounds]];
-        GL_CHECK(glViewport, 0, 0, (GLint)bounds.size.width, (GLint)bounds.size.height);
-        _boundsChanged = NO;
+        [self _updateViewport];
     }
 
-    GL_CHECK(glClearColor, 0.5, 0, 0, 0);
-    GL_CHECK(glClear, GL_COLOR_BUFFER_BIT);
     if (_ioSurface == NULL) {
+        GL_CHECK(glClearColor, 0, 0, 0, 1);
+        GL_CHECK(glClear, GL_COLOR_BUFFER_BIT);
         [[self openGLContext] flushBuffer];
         return;
     }
@@ -282,6 +275,10 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
 }
 
 - (void)render {
+    GL_CHECK(glUseProgram, _program);
+    GL_CHECK(glBindVertexArray, _quadVAOId);
+    GL_CHECK(glBindBuffer, GL_ARRAY_BUFFER, _quadVBOId);
+
     for (GLuint i = 0; i < _textureCount; i++) {
         GL_CHECK(glActiveTexture, GL_TEXTURE0 + i);
         GL_CHECK(glBindTexture,   GL_TEXTURE_RECTANGLE, _textures[i]);
@@ -391,7 +388,7 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
                 CFNumberGetValue(yuvRangeCorrection, kCFNumberFloatType, &yuvRangeCorrectionF);
                 CFRelease(yuvRangeCorrection);
 
-                BuildCoefficientTable(IOSurfaceGetHeightOfPlane(ioSurface, 0), yuvRangeCorrectionF, values);
+                BuildYUVCoefficientTable(IOSurfaceGetHeightOfPlane(ioSurface, 0), yuvRangeCorrectionF, values);
             
                 GL_CHECK(glUniform4fv, glGetUniformLocation(_program, "Coefficient"), 4, values);
                 GL_CHECK(glUniform1i,  glGetUniformLocation(_program, "Texture0"), 0);
@@ -447,6 +444,76 @@ static void BuildCoefficientTable(size_t height, float rangeCorrection, GLfloat*
     dispatch_async(dispatch_get_main_queue(), ^{
         self.needsDisplay = YES;
         [self displayIfNeededIgnoringOpacity];
+        
+        if (_nextFrameCapture) {
+            NSOpenGLContext* contextNS = [self openGLContext];
+        
+            [contextNS makeCurrentContext];
+            
+            GLuint framebuffer;
+            GLuint outputTexture;
+            GLint  width  = (GLint)IOSurfaceGetWidth(self.ioSurface);
+            GLint  height = (GLint)IOSurfaceGetHeight(self.ioSurface);
+            
+            GL_CHECK(glGenFramebuffers, 1, &framebuffer);
+            GL_CHECK(glBindFramebuffer, GL_FRAMEBUFFER, framebuffer);
+            
+            GL_CHECK(glGenTextures, 1, &outputTexture);
+            GL_CHECK(glBindTexture, GL_TEXTURE_2D, outputTexture);
+            GL_CHECK(glTexImage2D,  GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
+            
+            GL_CHECK(glFramebufferTexture, GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, outputTexture, 0);
+            GL_CHECK(glDrawBuffer, GL_COLOR_ATTACHMENT0);
+            GL_CHECK(glReadBuffer, GL_COLOR_ATTACHMENT0);
+            
+            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+                return;
+            
+            GL_CHECK(glBindFramebuffer, GL_FRAMEBUFFER, framebuffer);
+            GL_CHECK(glViewport, 0, 0, width, height);
+            GL_CHECK(glClearColor, 1, 0, 0, 1);
+            GL_CHECK(glClear, GL_COLOR_BUFFER_BIT);
+            
+            GLint mvp = glGetUniformLocation(_program, "mvp");
+            
+            GL_CHECK(glUniformMatrix4fv, mvp, 1, GL_FALSE, ymirror);
+            [self render];
+            GL_CHECK(glUniformMatrix4fv, mvp, 1, GL_FALSE, identity);
+            [self _updateViewport];
+            
+            NSInteger dataLength = width * height * 4;
+            GLubyte*  data       = (GLubyte*)malloc(dataLength * sizeof(GLubyte));
+
+            GL_CHECK(glReadPixels, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
+            GL_CHECK(glBindFramebuffer, GL_FRAMEBUFFER, 0);
+            GL_CHECK(glDeleteFramebuffers, 1, &framebuffer);
+            GL_CHECK(glDeleteTextures, 1, &outputTexture);
+
+            CGDataProviderRef dataRef    = CGDataProviderCreateWithData(NULL, data, dataLength, NULL);
+            CGColorSpaceRef   colorspace = CGColorSpaceCreateDeviceRGB();
+            CGImageRef        image      = CGImageCreate(width, height, 8, 32, width * 4, colorspace, (CGBitmapInfo)kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little, dataRef, NULL, true, kCGRenderingIntentDefault);
+            
+            void (^nextFrameCapture)(CGImageRef image) = _nextFrameCapture;
+            
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                @try {
+                    nextFrameCapture(image);
+                }
+                @finally {
+                    CGImageRelease(image);
+                }
+            });
+            
+            _nextFrameCapture = nil;
+            CGDataProviderRelease(dataRef);
+            CGColorSpaceRelease(colorspace);
+        }
+    });
+}
+
+- (void)captureNextFrame:(void (^)(CGImageRef frame))captureBlock {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        _nextFrameCapture = captureBlock;
     });
 }
 

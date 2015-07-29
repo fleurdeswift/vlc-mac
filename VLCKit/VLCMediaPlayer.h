@@ -15,6 +15,7 @@
 @property (nonatomic, readonly, nullable) VLCMedia* media;
 
 @property (nonatomic, readonly) BOOL playing;
+@property (nonatomic) BOOL paused;
 @property (nonatomic, readonly) NSTimeInterval duration;
 @property (nonatomic) NSTimeInterval time;
 @property (nonatomic) float position;
@@ -23,6 +24,8 @@
 - (void)play;
 - (void)stop;
 - (void)pause;
+
+- (void)setTime:(NSTimeInterval)newTime completionBlock:(nonnull dispatch_block_t)block;
 
 @property (nonatomic) BOOL mute;
 
