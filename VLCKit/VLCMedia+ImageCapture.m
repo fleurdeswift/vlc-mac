@@ -18,13 +18,13 @@
 
 @implementation VLCMedia (ImageCapture)
 
-- (void)generatePreviewImageAt:(NSTimeInterval)time
-               withMediaPlayer:(VLCMediaPlayer*)mediaPlayer
-              completionHander:(nonnull void (^)(__nullable CGImageRef image, __nullable NSError* error))handler {
-}
-
-- (void)generatePreviewImageAt:(NSTimeInterval)time
-              completionHander:(nonnull void (^)(__nullable CGImageRef image, __nullable NSError* error))handler {
+- (void)generatePreviewImageFor:(NSArray<NSNumber*>*)time
+               completionHander:(nonnull void (^)(__nullable CGImageRef image, __nullable NSError* error))handler {
+    if (time.count == 0) {
+        handler(nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil]);
+        return;
+    }
+    
     if (!self.parsed) {
         [self parse];
     }
@@ -36,6 +36,8 @@
         handler(nil, error);
         return;
     }
+    
+    [mediaPlayer setAudioModule:@"adummy"];
 
     VLCOpenGLView* view    = [[VLCOpenGLView alloc] init];
     CFTypeRef      surface = (__bridge CFTypeRef)view;
@@ -52,21 +54,89 @@
         return;
     }
     
-    [mediaPlayer setTime:time completionBlock:^{
-        //[mediaPlayer pause];
-        [view captureNextFrame:^(CGImageRef imageRef) {
-            [mediaPlayer stop];
-            [view description];
-            handler(imageRef, nil);
-        }];
-    }];
+    NSMutableArray<NSNumber*> *remaining = [time mutableCopy];
     
+    __block void (^captureFrameBlock)(VLCMediaPlayer *mediaPlayer, NSTimeInterval time) = ^(VLCMediaPlayer *mediaPlayer, NSTimeInterval time) {
+        if (time < 0) {
+            // Error seeking...
+            captureFrameBlock = nil;
+            handler(nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil]);
+            return;
+        }
+    
+        [view captureNextFrame:^(CGImageRef imageRef) {
+            @try {
+                handler(imageRef, nil);
+            }
+            @finally {
+                [remaining removeObjectAtIndex:0];
+                
+                if (remaining.count == 0) {
+                    [mediaPlayer stop];
+                    captureFrameBlock = nil;
+                    handler(nil, nil);
+                    [view description];
+                    return;
+                }
+                
+                NSTimeInterval nextTime = [remaining firstObject].floatValue;
+                NSTimeInterval duration = mediaPlayer.duration - 0.01;
+                
+                if (nextTime > duration) {
+                    nextTime = duration;
+                }
+                
+                [mediaPlayer setTime:nextTime completionBlock:captureFrameBlock];
+            }
+        }];
+    };
+    
+    [mediaPlayer setTime:[time firstObject].floatValue completionBlock:captureFrameBlock];
+}
+
+- (void)generatePreviewImageAt:(NSTimeInterval)time
+              completionHander:(nonnull void (^)(__nullable CGImageRef image, __nullable NSError* error))handler {
+    [self generatePreviewImageFor:@[@(time)] completionHander:handler];
 }
 
 - (void)generatePreviewImagesAtStart:(NSTimeInterval)start
                                  end:(NSTimeInterval)end
                                count:(NSInteger)count
                     completionHander:(nonnull void (^)(__nullable NSArray* images, __nullable NSError* error))handler {
+    NSTimeInterval duration = self.duration - 0.01;
+    
+    if (start < 0) {
+        handler(nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil]);
+        return;
+    }
+    
+    if (end > duration) {
+        end = duration;
+    }
+    
+    if (start > end) {
+        handler(nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil]);
+        return;
+    }
+    
+    NSTimeInterval             length  = (end - start) / (NSTimeInterval)count;
+    NSMutableArray<NSNumber*>* times   = [NSMutableArray array];
+    NSTimeInterval             current = start;
+    
+    for (NSInteger index = 0; index < count; ++index, current += length) {
+        [times addObject:@(current)];
+    }
+    
+    NSMutableArray* results = [NSMutableArray arrayWithCapacity:count];
+    
+    [self generatePreviewImageFor:times completionHander:^(CGImageRef image, NSError* error) {
+        if (image != NULL) {
+            [results addObject:(__bridge id)image];
+        }
+        else {
+            handler(results, error);
+        }
+    }];
 }
 
 @end

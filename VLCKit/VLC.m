@@ -8,6 +8,9 @@
 #import "VLC.h"
 #import "VLC+Private.h"
 
+#include <vlc/libvlc_media.h>
+#include <vlc/libvlc_media_player.h>
+
 static void LogData(void *data, int level, const libvlc_log_t *ctx, const char *fmt, va_list args) {
     fprintf(stderr, fmt, args);
 }
@@ -67,6 +70,19 @@ static void LogData(void *data, int level, const libvlc_log_t *ctx, const char *
     
     libvlc_clearerr();
     return errorAsString;
+}
+
+- (NSDictionary<NSString*,NSString*>*)audioModules {
+    libvlc_audio_output_t* first   = libvlc_audio_output_list_get(_vlc);
+    libvlc_audio_output_t* current = first;
+    NSMutableDictionary*   modules = [NSMutableDictionary dictionary];
+    
+    for (; current; current = current->p_next) {
+        modules[@(current->psz_name)] = @(current->psz_description);
+    }
+    
+    libvlc_audio_output_list_release(first);
+    return modules;
 }
 
 @end

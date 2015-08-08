@@ -14,4 +14,5 @@
 
 + (nullable NSString*)lastError;
 
+@property (nonatomic, nonnull, readonly) NSDictionary<NSString*, NSString*>* audioModules;
 @end

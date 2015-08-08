@@ -74,14 +74,16 @@
     return t / 1000.0f;
 }
 
-- (void)setTime:(NSTimeInterval)newTime completionBlock:(dispatch_block_t)block {
+- (void)setTime:(NSTimeInterval)newTime completionBlock:(void (^)(VLCMediaPlayer* mediaPlayer, NSTimeInterval time))block {
     libvlc_media_player_set_time(_player, (libvlc_time_t)(newTime * 1000));
 
     dispatch_source_t timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
     dispatch_source_set_timer(timer, dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_MSEC), NSEC_PER_MSEC, NSEC_PER_MSEC);
     dispatch_source_set_event_handler(timer, ^{
-        if (self.time >= newTime) {
-            block();
+        NSTimeInterval time = self.time;
+    
+        if (time >= newTime) {
+            block(self, time);
             dispatch_source_cancel(timer);
         }
     });
@@ -109,8 +111,16 @@
     return libvlc_audio_get_mute(_player)? true: false;
 }
 
+@end
+
+@implementation VLCMediaPlayer (Audio)
+
 - (void)setMute:(BOOL)mute {
     libvlc_audio_set_mute(_player, mute);
+}
+
+- (void)setAudioModule:(NSString* __nonnull)audioModule {
+    libvlc_audio_output_set(_player, audioModule.fileSystemRepresentation);
 }
 
 @end

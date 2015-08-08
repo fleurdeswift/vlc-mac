@@ -25,8 +25,10 @@
 - (void)stop;
 - (void)pause;
 
-- (void)setTime:(NSTimeInterval)newTime completionBlock:(nonnull dispatch_block_t)block;
+- (void)setTime:(NSTimeInterval)newTime completionBlock:(__nonnull void (^)(__nonnull VLCMediaPlayer*  mediaPlayer, NSTimeInterval time))block;
+@end
 
+@interface VLCMediaPlayer (Audio)
 @property (nonatomic) BOOL mute;
-
+- (void)setAudioModule:(NSString* __nonnull)audioModule;
 @end
