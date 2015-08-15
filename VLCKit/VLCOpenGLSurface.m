@@ -1,13 +1,16 @@
 //
-//  VLCOpenGL.m
+//  VLCOpenGLSurface.m
 //  VLCKit
 //
 //  Copyright © 2015 Fleur de Swift. All rights reserved.
 //
 
-#import "VLCOpenGL.h"
+#import "VLCOpenGLSurface.h"
 #import "VLCOpenGLShader.h"
 #import "YUV.h"
+
+NSString *IOSurfaceConfigured = @"IOSurfaceConfigured";
+NSString *IOSurfaceChanged    = @"IOSurfaceChanged";
 
 static const GLfloat identity[] = {
     1.0f, 0.0f, 0.0f, 0.0f,
@@ -57,7 +60,7 @@ static VLCOpenGLGlobal* _sharedGL    = nil;
 
 @end
 
-@implementation VLCOpenGL {
+@implementation VLCOpenGLSurface {
     GLsizei      _textureCount;
     GLuint       _textures[8];
     GLuint       _vertexShader;
@@ -65,6 +68,19 @@ static VLCOpenGLGlobal* _sharedGL    = nil;
     GLuint       _program;
     GLuint       _quadVAOId;
     GLuint       _quadVBOId;
+
+    NSOpenGLContext* _sharedContext;
+    IOSurfaceRef     _ioSurface;
+}
+
+- (instancetype)init {
+    self = [super init];
+
+    if (self) {
+        _sharedContext = VLCOpenGLGlobal.sharedContext;
+    }
+
+    return self;
 }
 
 - (void)dealloc
@@ -86,6 +102,12 @@ static VLCOpenGLGlobal* _sharedGL    = nil;
 }
 
 - (void)render {
+    if (_program == 0) {
+        GL_CHECK(glClearColor, 0, 0, 0, 1);
+        GL_CHECK(glClear, GL_COLOR_BUFFER_BIT);
+        return;
+    }
+
     GL_CHECK(glUseProgram, _program);
     GL_CHECK(glBindVertexArray, _quadVAOId);
     GL_CHECK(glBindBuffer, GL_ARRAY_BUFFER, _quadVBOId);
@@ -220,6 +242,41 @@ static VLCOpenGLGlobal* _sharedGL    = nil;
         GL_CHECK(glVertexAttribPointer, glGetAttribLocation(_program, "VertexPosition"), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), NULL);
         GL_CHECK(glVertexAttribPointer, glGetAttribLocation(_program, "MultiTexCoord0"), 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (const GLvoid*)(2 * sizeof(GLfloat)));
     }
+
+}
+
+#pragma mark - IOSurface
+
+- (void)ioSurfaceChanged {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:IOSurfaceChanged object:self];
+    });
+}
+
+- (IOSurfaceRef)ioSurface {
+    return _ioSurface;
+}
+
+- (void)setIoSurface:(IOSurfaceRef)ioSurface {
+    if (ioSurface) {
+        IOSurfaceIncrementUseCount(ioSurface);
+    }
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (_ioSurface) {
+            IOSurfaceDecrementUseCount(_ioSurface);
+        }
+        
+        _ioSurface = ioSurface;
+
+        if (ioSurface) {
+            CGLContextObj context = (CGLContextObj)[_sharedContext CGLContextObj];
+            
+            [_sharedContext makeCurrentContext];
+            [self setupWithIOSurface:ioSurface andCGLContext:context];
+            [[NSNotificationCenter defaultCenter] postNotificationName:IOSurfaceConfigured object:self];
+        }
+    });
 }
 
 @end

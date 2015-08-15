@@ -7,11 +7,13 @@
 
 #import <Cocoa/Cocoa.h>
 
-@class VLCMediaPlayer;
-@protocol VLCIOSurface;
+#import "VLCIOSurfaceView.h"
 
-@interface VLCView : NSView
+@class VLCMediaPlayer;
+
+@interface VLCView : NSView <VLCIOSurfaceView>
 @property (nonatomic, retain) VLCMediaPlayer* mediaPlayer;
 @property (nonatomic, retain) NSColor *backgroundColor;
-@property (nonatomic, retain, readonly) id <VLCIOSurface> surface;
+@property (nonatomic, retain) id <VLCIOSurface> surface;
+@property (nonatomic, retain, readonly) id <VLCIOSurfaceView> surfaceView;
 @end

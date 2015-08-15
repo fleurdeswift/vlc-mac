@@ -7,6 +7,9 @@
 
 #import <QuartzCore/QuartzCore.h>
 
-@interface VLCOpenGLLayer : CAOpenGLLayer
+#import "VLCIOSurfaceView.h"
+#import "VLCOpenGLSurface.h"
 
+@interface VLCOpenGLLayer : CAOpenGLLayer <VLCIOSurfaceView>
+@property (nonatomic, retain) VLCOpenGLSurface* surface;
 @end

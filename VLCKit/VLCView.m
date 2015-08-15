@@ -12,16 +12,26 @@
 #import "VLCOpenGLView.h"
 
 @implementation VLCView {
-    id <VLCIOSurface> _surface;
 }
 
 - (void)_setupSurfaceView {
     NSRect         bounds  = self.bounds;
-    VLCOpenGLView* surface = [[VLCOpenGLView alloc] initWithFrame:NSMakeRect(0, 0, bounds.size.width, bounds.size.height)];
-    
+
+    VLCOpenGLView* surfaceView = [[VLCOpenGLView alloc] initWithFrame:NSMakeRect(0, 0, bounds.size.width, bounds.size.height)];
+
+    _surface         = surfaceView.surface;
+    _surfaceView     = surfaceView;
     _backgroundColor = [NSColor blackColor];
-    _surface         = surface;
-    [self addSubview:surface];
+    [self addSubview:surfaceView];
+}
+
+- (void)setSurface:(id <VLCIOSurface>)surface {
+    if (_surface == surface) {
+        return;
+    }
+
+    _surface             = surface;
+    _surfaceView.surface = surface;
 }
 
 - (instancetype)initWithFrame:(NSRect)rect {
@@ -49,7 +59,7 @@
 - (void)setFrame:(NSRect)frame {
     [super setFrame:frame];
 
-    NSView* surface = (NSView*)_surface;
+    NSView* surface = ((NSView *)_surfaceView);
     NSRect  surfaceRect;
     NSSize  size    = surface.intrinsicContentSize;
     CGFloat ratio   = size.width       / size.height;
@@ -74,7 +84,7 @@
     surfaceRect.origin.y    = floor(surfaceRect.origin.y);
     surfaceRect.size.width  = ceil(surfaceRect.size.width);
     surfaceRect.size.height = ceil(surfaceRect.size.height);
-    [(NSView*)_surface setFrame:surfaceRect];
+    [surface setFrame:surfaceRect];
 }
 
 - (void)setMediaPlayer:(VLCMediaPlayer *)mediaPlayer {
@@ -89,7 +99,7 @@
 }
 
 - (NSSize)intrinsicContentSize {
-    return ((NSView *)_surface).intrinsicContentSize;
+    return ((NSView *)_surfaceView).intrinsicContentSize;
 }
 
 - (void)drawRect:(NSRect)dirtyRect {

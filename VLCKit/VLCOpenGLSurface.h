@@ -1,5 +1,5 @@
 //
-//  VLCOpenGL.h
+//  VLCOpenGLSurface.h
 //  VLCKit
 //
 //  Copyright © 2015 Fleur de Swift. All rights reserved.
@@ -12,15 +12,20 @@
 #import <OpenGL/gl.h>
 #import <GLKit/GLKit.h>
 
-@interface VLCOpenGLGlobal : NSObject
-@property (weak) NSOpenGLContext *sharedGL;
+#import "VLCIOSurface.h"
 
-+ (NSOpenGLContext*)sharedContext;
-@end
+extern NSString *IOSurfaceConfigured;
+extern NSString *IOSurfaceChanged;
 
-@interface VLCOpenGL : NSObject
+@interface VLCOpenGLSurface : NSObject <VLCIOSurface>
 @property (readonly) GLuint program;
 
 - (void)setupWithIOSurface:(IOSurfaceRef)ioSurface andCGLContext:(CGLContextObj)context;
 - (void)render;
+@end
+
+@interface VLCOpenGLGlobal : NSObject
+@property (weak) NSOpenGLContext *sharedGL;
+
++ (NSOpenGLContext*)sharedContext;
 @end

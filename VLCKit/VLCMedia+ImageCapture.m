@@ -63,7 +63,8 @@
             handler(nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil]);
             return;
         }
-    
+
+#if 0
         [view captureNextFrame:^(CGImageRef imageRef) {
             @try {
                 handler(imageRef, nil);
@@ -89,6 +90,7 @@
                 [mediaPlayer setTime:nextTime completionBlock:captureFrameBlock];
             }
         }];
+#endif
     };
     
     [mediaPlayer setTime:[time firstObject].floatValue completionBlock:captureFrameBlock];

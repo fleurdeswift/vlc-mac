@@ -7,7 +7,9 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import "VLCIOSurface.h"
+#import "VLCOpenGLSurface.h"
+#import "VLCView.h"
 
-@interface VLCOpenGLView : NSOpenGLView <VLCIOSurface>
+@interface VLCOpenGLView : NSOpenGLView <VLCIOSurfaceView>
+@property (nonatomic, retain) VLCOpenGLSurface* surface;
 @end

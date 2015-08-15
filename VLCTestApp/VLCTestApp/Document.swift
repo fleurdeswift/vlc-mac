@@ -37,7 +37,7 @@ public class Document: NSDocument {
     internal(set) public var media: VLCMedia?;
 
     public override func readFromURL(url: NSURL, ofType typeName: String) throws {
-        self.vlc   = try VLC(arguments: ["--verbose=4", "--no-color", "--vout=iosurface"]);
+        self.vlc   = try VLC(arguments: ["--no-color", "--vout=iosurface"]);
         self.media = try VLCMedia(path: url.path!, withVLC: vlc!);
     }
 }
