@@ -35,27 +35,21 @@ static const GLfloat ymirror[] = {
 };
 
 @implementation VLCOpenGLView {
-    IOSurfaceRef _ioSurface;
-    VLCOpenGL*   _gl;
-    BOOL         _boundsChanged;
+    IOSurfaceRef     _ioSurface;
+    VLCOpenGL*       _gl;
+    BOOL             _boundsChanged;
+    NSOpenGLContext* _sharedContext;
     
     void (^_nextFrameCapture)(CGImageRef frame);
 }
 
 - (instancetype)initWithFrame:(NSRect)rect {
-    NSOpenGLPixelFormatAttribute attribs[] = {
-        NSOpenGLPFAAccelerated,
-        NSOpenGLPFADoubleBuffer,
-        NSOpenGLPFAColorSize,     24,
-        NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion4_1Core,
-        0
-    };
-
-    NSOpenGLPixelFormat *pixelAttribs = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
-
-    _gl = [[VLCOpenGL alloc] init];
+    _sharedContext = VLCOpenGLGlobal.sharedContext;
+    _gl            = [[VLCOpenGL alloc] init];
     _boundsChanged = YES;
-    self = [super initWithFrame:rect pixelFormat:pixelAttribs];
+
+    self                                  = [super initWithFrame:rect pixelFormat:_sharedContext.pixelFormat];
+    self.openGLContext                    = [[NSOpenGLContext alloc] initWithFormat:_sharedContext.pixelFormat shareContext:_sharedContext];
     self.wantsBestResolutionOpenGLSurface = YES;
     return self;
 }

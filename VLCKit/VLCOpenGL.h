@@ -10,6 +10,13 @@
 #import <OpenGL/OpenGL.h>
 #import <OpenGL/gl3.h>
 #import <OpenGL/gl.h>
+#import <GLKit/GLKit.h>
+
+@interface VLCOpenGLGlobal : NSObject
+@property (weak) NSOpenGLContext *sharedGL;
+
++ (NSOpenGLContext*)sharedContext;
+@end
 
 @interface VLCOpenGL : NSObject
 @property (readonly) GLuint program;

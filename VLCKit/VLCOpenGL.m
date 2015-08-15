@@ -16,6 +16,47 @@ static const GLfloat identity[] = {
     0.0f, 0.0f, 0.0f, 1.0f
 };
 
+static dispatch_once_t  _sharedOnce  = 0;
+static dispatch_queue_t _sharedQueue = 0;
+static VLCOpenGLGlobal* _sharedGL    = nil;
+
+@implementation VLCOpenGLGlobal
+
++ (NSOpenGLContext *)sharedContext
+{
+    dispatch_once(&_sharedOnce, ^{
+        _sharedQueue = dispatch_queue_create("Shared GL", DISPATCH_QUEUE_SERIAL);
+        _sharedGL    = [VLCOpenGLGlobal new];
+    });
+
+    __block NSOpenGLContext *returnedContext;
+
+    dispatch_sync(_sharedQueue, ^{
+        returnedContext = _sharedGL.sharedGL;
+
+        if (returnedContext) {
+            return;
+        }
+
+        NSOpenGLPixelFormatAttribute attribs[] = {
+            NSOpenGLPFAAccelerated,
+            NSOpenGLPFADoubleBuffer,
+            NSOpenGLPFAColorSize,     24,
+            NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion4_1Core,
+            0
+        };
+
+        NSOpenGLPixelFormat *pixelAttribs = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
+
+        returnedContext    = [[NSOpenGLContext alloc] initWithFormat:pixelAttribs shareContext:nil];
+        _sharedGL.sharedGL = returnedContext;
+    });
+
+    return returnedContext;
+}
+
+@end
+
 @implementation VLCOpenGL {
     GLsizei      _textureCount;
     GLuint       _textures[8];
@@ -35,7 +76,7 @@ static const GLfloat identity[] = {
     if (_quadVBOId) {
         glDeleteBuffers(1, &_quadVBOId);
     }
-    
+
     [self freeShaderAndTextures];
 }
 
@@ -53,7 +94,7 @@ static const GLfloat identity[] = {
         GL_CHECK(glActiveTexture, GL_TEXTURE0 + i);
         GL_CHECK(glBindTexture,   GL_TEXTURE_RECTANGLE, _textures[i]);
     }
-    
+
     GL_CHECK(glEnableVertexAttribArray, glGetAttribLocation(_program, "VertexPosition"));
     GL_CHECK(glEnableVertexAttribArray, glGetAttribLocation(_program, "MultiTexCoord0"));
     GL_CHECK(glDrawArrays, GL_TRIANGLE_STRIP, 0, 4);
@@ -67,7 +108,7 @@ static const GLfloat identity[] = {
         glDeleteShader(_fragmentShader);
         glDeleteProgram(_program);
         memset(_textures, 0, sizeof(_textures));
-        
+
         _textureCount   = 0;
         _vertexShader   = 0;
         _fragmentShader = 0;
