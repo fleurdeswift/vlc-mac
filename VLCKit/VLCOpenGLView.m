@@ -57,8 +57,10 @@ static const GLfloat ymirror[] = {
         return;
     }
 
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:_surface];
-
+    if (_surface) {
+        [[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:_surface];
+    }
+    
     _surface       = surface;
     _boundsChanged = YES;
 
