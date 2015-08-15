@@ -10,6 +10,7 @@
 
 @implementation VLCOpenGLLayer {
     NSOpenGLContext* sharedContext;
+    BOOL             dirty;
 }
 
 - (CGLPixelFormatObj)copyCGLPixelFormatForDisplayMask:(uint32_t)mask {
@@ -43,6 +44,11 @@
 
     CGLCreateContext(pixelFormat, sharedContext.CGLContextObj, &context);
     return context;
+}
+
+-(BOOL)canDrawInCGLContext:(CGLContextObj)glContext pixelFormat:(CGLPixelFormatObj)pixelFormat forLayerTime:(CFTimeInterval)timeInterval displayTime:(const CVTimeStamp *)timeStamp
+{
+    return dirty;
 }
 
 @end

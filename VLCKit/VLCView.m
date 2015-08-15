@@ -92,10 +92,20 @@
         return;
 
     _mediaPlayer = mediaPlayer;
-    
-    CFTypeRef surface = (__bridge CFTypeRef)_surface;
-    
-    libvlc_media_player_set_nsobject(mediaPlayer.impl, (void*)surface);
+
+    CFTypeRef surface = (CFTypeRef)libvlc_media_player_get_nsobject(mediaPlayer.impl);
+
+    if (surface) {
+        self.surface = (__bridge id <VLCIOSurface>)surface;
+    }
+    else {
+        VLCOpenGLSurface* newSurface = [[VLCOpenGLSurface alloc] init];
+
+        surface = (__bridge CFTypeRef)newSurface;
+        libvlc_media_player_set_nsobject(mediaPlayer.impl, (void*)surface);
+
+        self.surface = newSurface;
+    }
 }
 
 - (NSSize)intrinsicContentSize {

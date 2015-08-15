@@ -43,11 +43,7 @@ static const GLfloat ymirror[] = {
 
 - (instancetype)initWithFrame:(NSRect)rect {
     _sharedContext = VLCOpenGLGlobal.sharedContext;
-    _surface       = [[VLCOpenGLSurface alloc] init];
     _boundsChanged = YES;
-
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ioSurfaceConfigured:) name:IOSurfaceConfigured object:_surface];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ioSurfaceChanged:)    name:IOSurfaceChanged    object:_surface];
 
     self                                  = [super initWithFrame:rect pixelFormat:_sharedContext.pixelFormat];
     self.openGLContext                    = [[NSOpenGLContext alloc] initWithFormat:_sharedContext.pixelFormat shareContext:_sharedContext];
@@ -61,8 +57,13 @@ static const GLfloat ymirror[] = {
         return;
     }
 
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:_surface];
+
     _surface       = surface;
     _boundsChanged = YES;
+
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ioSurfaceConfigured:) name:IOSurfaceConfigured object:_surface];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ioSurfaceChanged:)    name:IOSurfaceChanged    object:_surface];
 
     self.needsDisplay = YES;
     [self invalidateIntrinsicContentSize];
@@ -95,7 +96,7 @@ static const GLfloat ymirror[] = {
         [self _updateViewport];
     }
 
-    if (_surface == NULL) {
+    if (_surface == nil) {
         GL_CHECK(glClearColor, 0, 0, 0, 1);
         GL_CHECK(glClear, GL_COLOR_BUFFER_BIT);
         [context flushBuffer];
