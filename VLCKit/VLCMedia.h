@@ -37,11 +37,11 @@ typedef NS_ENUM(NSInteger, VLCMediaState) {
 @interface VLCMedia (ImageCapture)
 
 - (void)generatePreviewImageAt:(NSTimeInterval)start
-              completionHander:(nonnull void (^)(__nullable CGImageRef image, __nullable NSError* error))handler;
+              completionHander:(void (^ __nonnull)(__nullable CGImageRef image,  NSError* __nullable error))handler;
 
 - (void)generatePreviewImagesAtStart:(NSTimeInterval)start
                                  end:(NSTimeInterval)end
                                count:(NSInteger)count
-                    completionHander:(nonnull void (^)(__nullable NSArray* images, __nullable NSError* error))handler;
+                    completionHander:(void (^ __nonnull)(NSArray* __nullable images, NSError* __nullable error))handler;
 
 @end

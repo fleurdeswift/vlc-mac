@@ -25,7 +25,7 @@
 - (void)stop;
 - (void)pause;
 
-- (void)setTime:(NSTimeInterval)newTime completionBlock:(__nonnull void (^)(__nonnull VLCMediaPlayer*  mediaPlayer, NSTimeInterval time))block;
+- (void)setTime:(NSTimeInterval)newTime completionBlock:(void (^ __nonnull)(VLCMediaPlayer* __nonnull mediaPlayer, NSTimeInterval time))block;
 @end
 
 @interface VLCMediaPlayer (Audio)

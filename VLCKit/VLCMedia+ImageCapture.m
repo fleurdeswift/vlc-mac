@@ -19,7 +19,7 @@
 @implementation VLCMedia (ImageCapture)
 
 - (void)generatePreviewImageFor:(NSArray<NSNumber*>*)time
-               completionHander:(nonnull void (^)(__nullable CGImageRef image, __nullable NSError* error))handler {
+               completionHander:(void (^ __nonnull)(__nullable CGImageRef image, NSError* __nullable error))handler {
     if (time.count == 0) {
         handler(nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil]);
         return;
@@ -95,14 +95,14 @@
 }
 
 - (void)generatePreviewImageAt:(NSTimeInterval)time
-              completionHander:(nonnull void (^)(__nullable CGImageRef image, __nullable NSError* error))handler {
+              completionHander:(void (^ __nonnull)(__nullable CGImageRef image, NSError* __nullable error))handler {
     [self generatePreviewImageFor:@[@(time)] completionHander:handler];
 }
 
 - (void)generatePreviewImagesAtStart:(NSTimeInterval)start
                                  end:(NSTimeInterval)end
                                count:(NSInteger)count
-                    completionHander:(nonnull void (^)(__nullable NSArray* images, __nullable NSError* error))handler {
+                    completionHander:(void (^ __nonnull)(NSArray* __nullable images, NSError* __nullable error))handler {
     NSTimeInterval duration = self.duration - 0.01;
     
     if (start < 0) {
