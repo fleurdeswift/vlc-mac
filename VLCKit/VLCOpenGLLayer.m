@@ -6,6 +6,10 @@
 //
 
 #import "VLCOpenGLLayer.h"
+
+#import "VLCIOSurface.h"
+#import "VLCMediaPlayer.h"
+#import "VLCMediaPlayer+Private.h"
 #import "VLCOpenGLSurface.h"
 
 @implementation VLCOpenGLLayer {
@@ -34,8 +38,7 @@
     return pixFormatObj;
 }
 
-- (CGLContextObj)copyCGLContextForPixelFormat:(CGLPixelFormatObj)pixelFormat
-{
+- (CGLContextObj)copyCGLContextForPixelFormat:(CGLPixelFormatObj)pixelFormat {
     if (sharedContext == nil) {
         sharedContext = VLCOpenGLGlobal.sharedContext;
     }
@@ -46,9 +49,55 @@
     return context;
 }
 
--(BOOL)canDrawInCGLContext:(CGLContextObj)glContext pixelFormat:(CGLPixelFormatObj)pixelFormat forLayerTime:(CFTimeInterval)timeInterval displayTime:(const CVTimeStamp *)timeStamp
-{
+- (BOOL)canDrawInCGLContext:(CGLContextObj)glContext pixelFormat:(CGLPixelFormatObj)pixelFormat forLayerTime:(CFTimeInterval)timeInterval displayTime:(const CVTimeStamp *)timeStamp {
     return dirty;
+}
+
+- (void)drawInCGLContext:(CGLContextObj)glContext pixelFormat:(CGLPixelFormatObj)pixelFormat forLayerTime:(CFTimeInterval)timeInterval displayTime:(const CVTimeStamp *)timeStamp {
+    dirty = NO;
+
+    if (_surface == nil) {
+        return;
+    }
+
+	CGLSetCurrentContext(glContext);
+    [_surface render];
+}
+
+- (void)setSurface:(VLCOpenGLSurface *)surface {
+    if (_surface == surface) {
+        return;
+    }
+
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:_surface];
+    _surface = surface;
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ioSurfaceChanged:) name:IOSurfaceConfigured object:_surface];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ioSurfaceChanged:) name:IOSurfaceChanged    object:_surface];
+}
+
+- (void)ioSurfaceChanged:(id)sender {
+    dirty = YES;
+}
+
+- (void)setMediaPlayer:(VLCMediaPlayer *)mediaPlayer {
+    if (_mediaPlayer == mediaPlayer)
+        return;
+
+    _mediaPlayer = mediaPlayer;
+
+    CFTypeRef surface = (CFTypeRef)libvlc_media_player_get_nsobject(mediaPlayer.impl);
+
+    if (surface) {
+        self.surface = (__bridge VLCOpenGLSurface*)surface;
+    }
+    else {
+        VLCOpenGLSurface* newSurface = [[VLCOpenGLSurface alloc] init];
+
+        surface = (__bridge CFTypeRef)newSurface;
+        libvlc_media_player_set_nsobject(mediaPlayer.impl, (void*)surface);
+
+        self.surface = newSurface;
+    }
 }
 
 @end

@@ -10,6 +10,9 @@
 #import "VLCIOSurfaceView.h"
 #import "VLCOpenGLSurface.h"
 
+@class VLCMediaPlayer;
+
 @interface VLCOpenGLLayer : CAOpenGLLayer <VLCIOSurfaceView>
 @property (nonatomic, retain) VLCOpenGLSurface* surface;
+@property (nonatomic, retain) VLCMediaPlayer* mediaPlayer;
 @end

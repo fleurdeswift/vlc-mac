@@ -18,9 +18,6 @@ extern NSString *IOSurfaceConfigured;
 extern NSString *IOSurfaceChanged;
 
 @interface VLCOpenGLSurface : NSObject <VLCIOSurface>
-@property (readonly) GLuint program;
-
-- (void)setupWithIOSurface:(IOSurfaceRef)ioSurface andCGLContext:(CGLContextObj)context;
 - (void)render;
 @end
 

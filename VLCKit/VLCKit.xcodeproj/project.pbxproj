@@ -320,11 +320,11 @@
 		7B5DD3441B681C6A00F9EEF1 /* VLCOpenGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 7B5DD3421B681C6A00F9EEF1 /* VLCOpenGLView.m */; };
 		7BAA63AE1B6877BD009F877E /* VLCMedia+ImageCapture.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BAA63AD1B6877BD009F877E /* VLCMedia+ImageCapture.m */; };
 		7BAA63B01B687B13009F877E /* YUV.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BAA63AF1B687B13009F877E /* YUV.m */; };
-		7BF4AD601B7F24AF006B3EF1 /* VLCOpenGLLayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BF4AD5E1B7F24AF006B3EF1 /* VLCOpenGLLayer.h */; };
+		7BF4AD601B7F24AF006B3EF1 /* VLCOpenGLLayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BF4AD5E1B7F24AF006B3EF1 /* VLCOpenGLLayer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		7BF4AD611B7F24AF006B3EF1 /* VLCOpenGLLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BF4AD5F1B7F24AF006B3EF1 /* VLCOpenGLLayer.m */; };
 		7BF4AD641B7F253F006B3EF1 /* VLCOpenGLShader.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BF4AD621B7F253F006B3EF1 /* VLCOpenGLShader.h */; };
 		7BF4AD651B7F253F006B3EF1 /* VLCOpenGLShader.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BF4AD631B7F253F006B3EF1 /* VLCOpenGLShader.m */; };
-		7BF4AD681B7F282A006B3EF1 /* VLCOpenGLSurface.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BF4AD661B7F282A006B3EF1 /* VLCOpenGLSurface.h */; };
+		7BF4AD681B7F282A006B3EF1 /* VLCOpenGLSurface.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BF4AD661B7F282A006B3EF1 /* VLCOpenGLSurface.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		7BF4AD691B7F282A006B3EF1 /* VLCOpenGLSurface.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BF4AD671B7F282A006B3EF1 /* VLCOpenGLSurface.m */; };
 		7BF4AD6D1B7FCC5E006B3EF1 /* VLCIOSurfaceView.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BF4AD6C1B7FCC1F006B3EF1 /* VLCIOSurfaceView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */

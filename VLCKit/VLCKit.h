@@ -16,5 +16,6 @@ FOUNDATION_EXPORT const unsigned char VLCKitVersionString[];
 #import "VLC.h"
 #import "VLCMedia.h"
 #import "VLCMediaPlayer.h"
+#import "VLCOpenGLLayer.h"
 #import "VLCView.h"
 #import "VLCIOSurface.h"
