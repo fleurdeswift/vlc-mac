@@ -18,3 +18,5 @@ GLuint BuildRGBAShader(size_t planes);
 GLuint BuildVertexShader(size_t planes);
 
 void VerifyProgram(GLuint program);
+
+void GLcheck();
