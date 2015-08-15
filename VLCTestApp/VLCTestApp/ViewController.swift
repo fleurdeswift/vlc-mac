@@ -70,9 +70,10 @@ public class ViewController: NSViewController {
             if let document = self.view.window?.windowController?.document as? Document {
                 if let media = document.media, let view = self.vlcView {
                     do {
-                        self.playerMediaPlayer = try VLCMediaPlayer(media: media);
+                        self.playerMediaPlayer   = try VLCMediaPlayer(media: media);
                         self.scrubberMediaPlayer = try VLCMediaPlayer(media: media);
                         view.mediaPlayer = self.playerMediaPlayer!;
+                        self.scrubbingView!.mediaPlayer = self.playerMediaPlayer!;
                     }
                     catch let error as NSError {
                         NSAlert(error: error).runModal();
