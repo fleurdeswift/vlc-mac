@@ -9,6 +9,22 @@
 
 @class VLCMedia;
 
+extern NSString * __nonnull VLCMediaPlayerStateChanged;
+extern NSString * __nonnull VLCMediaPlayerPositionChanged;
+extern NSString * __nonnull VLCMediaPlayerTimeChanged;
+extern NSString * __nonnull VLCMediaPlayerMediaChanged;
+
+typedef NS_ENUM(NSInteger, VLCMediaPlayerState) {
+    VLCMediaPlayerStateUnknown = 0,
+    VLCMediaPlayerStateOpening,
+    VLCMediaPlayerStateBuffering,
+    VLCMediaPlayerStatePlaying,
+    VLCMediaPlayerStatePaused,
+    VLCMediaPlayerStateStopped,
+    VLCMediaPlayerStateEnded,
+    VLCMediaPlayerStateError
+};
+
 @interface VLCMediaPlayer : NSObject
 - (nullable instancetype)initWithMedia:(nonnull VLCMedia*)media error:(out NSError * __nullable * __nullable)error;
 
@@ -20,6 +36,7 @@
 @property (nonatomic) NSTimeInterval time;
 @property (nonatomic) float position;
 @property (nonatomic, readonly) BOOL seekable;
+@property (nonatomic, readonly) VLCMediaPlayerState state;
 
 - (void)play;
 - (void)stop;

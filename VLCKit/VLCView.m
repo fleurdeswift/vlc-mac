@@ -109,6 +109,10 @@
 }
 
 - (NSSize)intrinsicContentSize {
+    if (self.preserveInitialSize) {
+        return self.bounds.size;
+    }
+
     return ((NSView *)_surfaceView).intrinsicContentSize;
 }
 

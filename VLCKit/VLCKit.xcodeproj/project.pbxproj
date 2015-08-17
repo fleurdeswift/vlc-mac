@@ -318,6 +318,8 @@
 		7B5BDDC91B64760B00003FE7 /* VLCMediaPlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7B5BDDC71B64760B00003FE7 /* VLCMediaPlayer.m */; };
 		7B5DD3431B681C6A00F9EEF1 /* VLCOpenGLView.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B5DD3411B681C6A00F9EEF1 /* VLCOpenGLView.h */; };
 		7B5DD3441B681C6A00F9EEF1 /* VLCOpenGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 7B5DD3421B681C6A00F9EEF1 /* VLCOpenGLView.m */; };
+		7B8E66FF1B813D8400376B8E /* VLCMediaTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B8E66FD1B813D8400376B8E /* VLCMediaTrack.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		7B8E67001B813D8400376B8E /* VLCMediaTrack.m in Sources */ = {isa = PBXBuildFile; fileRef = 7B8E66FE1B813D8400376B8E /* VLCMediaTrack.m */; };
 		7BAA63AE1B6877BD009F877E /* VLCMedia+ImageCapture.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BAA63AD1B6877BD009F877E /* VLCMedia+ImageCapture.m */; };
 		7BAA63B01B687B13009F877E /* YUV.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BAA63AF1B687B13009F877E /* YUV.m */; };
 		7BF4AD601B7F24AF006B3EF1 /* VLCOpenGLLayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BF4AD5E1B7F24AF006B3EF1 /* VLCOpenGLLayer.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -328,6 +330,23 @@
 		7BF4AD691B7F282A006B3EF1 /* VLCOpenGLSurface.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BF4AD671B7F282A006B3EF1 /* VLCOpenGLSurface.m */; };
 		7BF4AD6D1B7FCC5E006B3EF1 /* VLCIOSurfaceView.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BF4AD6C1B7FCC1F006B3EF1 /* VLCIOSurfaceView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		7B1F0B181B8008CD006FD3FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B1F0B0C1B80085D006FD3FE /* IOSurfaceModule.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7B4DA7881B6452F800B4DA1C;
+			remoteInfo = IOSurfaceModule;
+		};
+		7BA445711B818EE8002FD761 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B1F0B0C1B80085D006FD3FE /* IOSurfaceModule.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 7B4DA7871B6452F800B4DA1C;
+			remoteInfo = IOSurfaceModule;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		7B5BDA111B645DCF00003FE7 /* CopyFiles */ = {
@@ -651,6 +670,7 @@
 
 /* Begin PBXFileReference section */
 		7B11F8D51B65B34200DCF97E /* VLCIOSurface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VLCIOSurface.h; sourceTree = "<group>"; };
+		7B1F0B0C1B80085D006FD3FE /* IOSurfaceModule.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = IOSurfaceModule.xcodeproj; path = ../IOSurfaceModule/IOSurfaceModule.xcodeproj; sourceTree = "<group>"; };
 		7B4DA79D1B645A4300B4DA1C /* VLCKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = VLCKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7B4DA7A01B645A4300B4DA1C /* VLCKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VLCKit.h; sourceTree = SOURCE_ROOT; };
 		7B4DA7A21B645A4300B4DA1C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = SOURCE_ROOT; };
@@ -966,6 +986,9 @@
 		7B5BDDCA1B64761B00003FE7 /* VLCMediaPlayer+Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "VLCMediaPlayer+Private.h"; sourceTree = "<group>"; };
 		7B5DD3411B681C6A00F9EEF1 /* VLCOpenGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VLCOpenGLView.h; sourceTree = "<group>"; };
 		7B5DD3421B681C6A00F9EEF1 /* VLCOpenGLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VLCOpenGLView.m; sourceTree = "<group>"; };
+		7B8E66FD1B813D8400376B8E /* VLCMediaTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VLCMediaTrack.h; sourceTree = "<group>"; };
+		7B8E66FE1B813D8400376B8E /* VLCMediaTrack.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VLCMediaTrack.m; sourceTree = "<group>"; };
+		7B8E67021B813FA600376B8E /* VLCMediaTrack+Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "VLCMediaTrack+Private.h"; sourceTree = "<group>"; };
 		7BAA63AD1B6877BD009F877E /* VLCMedia+ImageCapture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "VLCMedia+ImageCapture.m"; sourceTree = "<group>"; };
 		7BAA63AF1B687B13009F877E /* YUV.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YUV.m; sourceTree = "<group>"; };
 		7BAA63B11B687B72009F877E /* YUV.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = YUV.h; sourceTree = "<group>"; };
@@ -989,9 +1012,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7B1F0B151B8008CD006FD3FE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7B1F0B191B8008CD006FD3FE /* libvout_iosurface_plugin.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		7B4DA7931B645A4300B4DA1C = {
 			isa = PBXGroup;
 			children = (
+				7B1F0B0C1B80085D006FD3FE /* IOSurfaceModule.xcodeproj */,
 				7B4DA79F1B645A4300B4DA1C /* Sources */,
 				7B5BDA151B645E4800003FE7 /* Dependancies */,
 				7B4DA79E1B645A4300B4DA1C /* Products */,
@@ -1023,6 +1055,9 @@
 				7B5BDDC61B64760B00003FE7 /* VLCMediaPlayer.h */,
 				7B5BDDC71B64760B00003FE7 /* VLCMediaPlayer.m */,
 				7B5BDDCA1B64761B00003FE7 /* VLCMediaPlayer+Private.h */,
+				7B8E66FD1B813D8400376B8E /* VLCMediaTrack.h */,
+				7B8E66FE1B813D8400376B8E /* VLCMediaTrack.m */,
+				7B8E67021B813FA600376B8E /* VLCMediaTrack+Private.h */,
 				7BF4AD5E1B7F24AF006B3EF1 /* VLCOpenGLLayer.h */,
 				7BF4AD5F1B7F24AF006B3EF1 /* VLCOpenGLLayer.m */,
 				7BF4AD621B7F253F006B3EF1 /* VLCOpenGLShader.h */,
@@ -1385,6 +1420,7 @@
 				7BF4AD681B7F282A006B3EF1 /* VLCOpenGLSurface.h in Headers */,
 				7B5DD3431B681C6A00F9EEF1 /* VLCOpenGLView.h in Headers */,
 				7B5BDDBC1B6463EE00003FE7 /* VLCMedia.h in Headers */,
+				7B8E66FF1B813D8400376B8E /* VLCMediaTrack.h in Headers */,
 				7B4DA7A11B645A4300B4DA1C /* VLCKit.h in Headers */,
 				7B11F8D61B65B34200DCF97E /* VLCIOSurface.h in Headers */,
 				7BF4AD641B7F253F006B3EF1 /* VLCOpenGLShader.h in Headers */,
@@ -1409,6 +1445,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				7BA445721B818EE8002FD761 /* PBXTargetDependency */,
 			);
 			name = VLCKit;
 			productName = VLCKit;
@@ -1441,12 +1478,28 @@
 			mainGroup = 7B4DA7931B645A4300B4DA1C;
 			productRefGroup = 7B4DA79E1B645A4300B4DA1C /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 7B1F0B151B8008CD006FD3FE /* Products */;
+					ProjectRef = 7B1F0B0C1B80085D006FD3FE /* IOSurfaceModule.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				7B4DA79C1B645A4300B4DA1C /* VLCKit */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		7B1F0B191B8008CD006FD3FE /* libvout_iosurface_plugin.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.dylib";
+			path = libvout_iosurface_plugin.dylib;
+			remoteRef = 7B1F0B181B8008CD006FD3FE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		7B4DA79B1B645A4300B4DA1C /* Resources */ = {
@@ -1466,6 +1519,7 @@
 				7B5BDDC11B64647000003FE7 /* VLC.m in Sources */,
 				7BF4AD651B7F253F006B3EF1 /* VLCOpenGLShader.m in Sources */,
 				7B5BDDC91B64760B00003FE7 /* VLCMediaPlayer.m in Sources */,
+				7B8E67001B813D8400376B8E /* VLCMediaTrack.m in Sources */,
 				7B5BDDBD1B6463EE00003FE7 /* VLCMedia.m in Sources */,
 				7B4DA7B11B645AF700B4DA1C /* VLCView.m in Sources */,
 				7BAA63B01B687B13009F877E /* YUV.m in Sources */,
@@ -1477,6 +1531,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7BA445721B818EE8002FD761 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = IOSurfaceModule;
+			targetProxy = 7BA445711B818EE8002FD761 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		7B4DA7A31B645A4300B4DA1C /* Debug */ = {
@@ -1577,7 +1639,10 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(VLC_DIR)/lib";
-				OTHER_LDFLAGS = "-lvlc";
+				OTHER_LDFLAGS = (
+					"-lvlc",
+					"-lvlccore",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.fds.VLCKit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -1601,7 +1666,10 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(VLC_DIR)/lib";
-				OTHER_LDFLAGS = "-lvlc";
+				OTHER_LDFLAGS = (
+					"-lvlc",
+					"-lvlccore",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.fds.VLCKit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;

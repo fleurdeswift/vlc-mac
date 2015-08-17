@@ -20,7 +20,13 @@ static void LogData(void *data, int level, const libvlc_log_t *ctx, const char *
 }
 
 - (instancetype)init:(NSError**)error {
-    _vlc = libvlc_new(0, NULL);
+    const char* args[] = {
+        "--no-color",
+        "--vout=iosurface",
+        NULL
+    };
+
+    _vlc = libvlc_new(2, args);
     
     if (_vlc == NULL) {
         reportError(error);
@@ -32,13 +38,35 @@ static void LogData(void *data, int level, const libvlc_log_t *ctx, const char *
 }
 
 - (instancetype)initWithArguments:(NSArray<NSString*> *)arguments error:(NSError**)error {
-    int argc = (int)arguments.count;
+    NSMutableArray<NSString*> *moded = [arguments mutableCopy];
+
+    BOOL hasNoColor = NO;
+    BOOL hasVout    = NO;
+
+    for (NSString *arg in arguments) {
+        if ([arg isEqualToString:@"--no-color"]) {
+            hasNoColor = YES;
+        }
+        else if ([arg isEqualToString:@"--vout="]) {
+            hasVout = YES;
+        }
+    }
+
+    if (!hasNoColor) {
+        [moded addObject:@"--no-color"];
+    }
+
+    if (!hasVout) {
+        [moded addObject:@"--vout=iosurface"];
+    }
+
+    int argc = (int)moded.count;
     
     if (argc) {
-        const char** args = (const char**)alloca(sizeof(char*) * arguments.count);
+        const char** args = (const char**)alloca(sizeof(char*) * moded.count);
 
         for (int index = 0; index < argc; index++) {
-            args[index] = arguments[index].fileSystemRepresentation;
+            args[index] = moded[index].fileSystemRepresentation;
         }
 
         _vlc = libvlc_new(argc, args);

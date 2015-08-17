@@ -44,16 +44,6 @@
 		};
 /* End PBXGroup section */
 
-/* Begin PBXHeadersBuildPhase section */
-		7B4DA7861B6452F800B4DA1C /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXHeadersBuildPhase section */
-
 /* Begin PBXNativeTarget section */
 		7B4DA7871B6452F800B4DA1C /* IOSurfaceModule */ = {
 			isa = PBXNativeTarget;
@@ -61,7 +51,7 @@
 			buildPhases = (
 				7B4DA7841B6452F800B4DA1C /* Sources */,
 				7B4DA7851B6452F800B4DA1C /* Frameworks */,
-				7B4DA7861B6452F800B4DA1C /* Headers */,
+				7B18D1D11B819048000048C2 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -102,6 +92,24 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		7B18D1D11B819048000048C2 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/$(EXECUTABLE_PATH)",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "install_name_tool -change \"@loader_path/lib/libvlccore.8.dylib\" \"@loader_path/../lib/libvlccore.8.dylib\" $BUILT_PRODUCTS_DIR/$EXECUTABLE_PATH";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		7B4DA7841B6452F800B4DA1C /* Sources */ = {

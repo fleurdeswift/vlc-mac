@@ -7,14 +7,88 @@
 
 #import "VLCMedia.h"
 #import "VLCMedia+Private.h"
+#import "VLCMediaTrack.h"
+#import "VLCMediaTrack+Private.h"
 
 #import "VLC.h"
 #import "VLC+Private.h"
+
+#import <vlc/libvlc_events.h>
+
+NSString* VLCMediaMetaChanged     = @"VLCMediaMetaChanged";
+NSString* VLCMediaDurationChanged = @"VLCMediaDurationChanged";
+NSString* VLCMediaStateChanged    = @"VLCMediaStateChanged";
+NSString* VLCMediaSubItemAdded    = @"VLCMediaSubItemAdded";
+NSString* VLCMediaParsedChanged   = @"VLCMediaParsedChanged";
 
 static NSMapTable* mediaTable;
 
 @implementation VLCMedia {
     libvlc_media_t* _media;
+}
+
+static void HandleMediaMetaChanged(const libvlc_event_t* event, void* self) {
+    VLCMedia* media = (__bridge VLCMedia*)self;
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:VLCMediaMetaChanged object:media];
+    });
+}
+
+static void HandleMediaDurationChanged(const libvlc_event_t* event, void* self) {
+    VLCMedia* media = (__bridge VLCMedia*)self;
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:VLCMediaDurationChanged object:media];
+    });
+}
+
+static void HandleMediaStateChanged(const libvlc_event_t* event, void* self) {
+    VLCMedia* media = (__bridge VLCMedia*)self;
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:VLCMediaStateChanged object:media];
+    });
+}
+
+static void HandleMediaSubItemAdded(const libvlc_event_t* event, void* self) {
+    VLCMedia* media = (__bridge VLCMedia*)self;
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:VLCMediaSubItemAdded object:media];
+    });
+}
+
+static void HandleMediaParsedChanged(const libvlc_event_t* event, void* self) {
+    VLCMedia* media = (__bridge VLCMedia*)self;
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:VLCMediaParsedChanged object:media];
+    });
+}
+
+- (void)setupEvents {
+    libvlc_event_manager_t * p_em = libvlc_media_event_manager(_media);
+
+    if (p_em) {
+        libvlc_event_attach(p_em, libvlc_MediaMetaChanged,     HandleMediaMetaChanged,     (__bridge void *)(self));
+        libvlc_event_attach(p_em, libvlc_MediaDurationChanged, HandleMediaDurationChanged, (__bridge void *)(self));
+        libvlc_event_attach(p_em, libvlc_MediaStateChanged,    HandleMediaStateChanged,    (__bridge void *)(self));
+        libvlc_event_attach(p_em, libvlc_MediaSubItemAdded,    HandleMediaSubItemAdded,    (__bridge void *)(self));
+        libvlc_event_attach(p_em, libvlc_MediaParsedChanged,   HandleMediaParsedChanged,   (__bridge void *)(self));
+    }
+}
+
+- (void)cancelEvents {
+    libvlc_event_manager_t * p_em = libvlc_media_event_manager(_media);
+
+    if (p_em) {
+        libvlc_event_detach(p_em, libvlc_MediaMetaChanged,     HandleMediaMetaChanged,     (__bridge void *)(self));
+        libvlc_event_detach(p_em, libvlc_MediaDurationChanged, HandleMediaDurationChanged, (__bridge void *)(self));
+        libvlc_event_detach(p_em, libvlc_MediaStateChanged,    HandleMediaStateChanged,    (__bridge void *)(self));
+        libvlc_event_detach(p_em, libvlc_MediaSubItemAdded,    HandleMediaSubItemAdded,    (__bridge void *)(self));
+        libvlc_event_detach(p_em, libvlc_MediaParsedChanged,   HandleMediaParsedChanged,   (__bridge void *)(self));
+    }
 }
 
 - (instancetype)initWithPath:(NSString*)filePath withVLC:(VLC*)vlc error:(NSError**)error {
@@ -26,6 +100,7 @@ static NSMapTable* mediaTable;
     }
     
     [self _cache];
+    [self setupEvents];
     return self;
 }
 
@@ -52,6 +127,7 @@ static NSMapTable* mediaTable;
 }
 
 - (void)dealloc {
+    [self cancelEvents];
     libvlc_media_release(_media);
 }
 
@@ -84,6 +160,19 @@ static NSMapTable* mediaTable;
     }
 }
 
+- (NSArray<VLCMediaTrack*>*)tracks {
+    libvlc_media_track_t** vtracks = NULL;
+    int                    trackCount = libvlc_media_tracks_get(_media, &vtracks);
+    NSMutableArray*        results    = [NSMutableArray array];
+
+    for (int index = 0; index < trackCount; index++) {
+        [results addObject:[[VLCMediaTrack alloc] initWithTrack:vtracks[index]]];
+    }
+
+    libvlc_media_tracks_release(vtracks, trackCount);
+    return results;
+}
+
 @end
 
 @implementation VLCMedia (Private)
@@ -95,6 +184,7 @@ static NSMapTable* mediaTable;
 - (instancetype)initWithImplementation:(libvlc_media_t*)impl {
     _media = impl;
     [self _cache];
+    [self setupEvents];
     return self;
 }
 

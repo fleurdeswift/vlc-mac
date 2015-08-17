@@ -8,6 +8,13 @@
 #import <Foundation/Foundation.h>
 
 @class VLC;
+@class VLCMediaTrack;
+
+extern NSString* __nonnull VLCMediaMetaChanged;
+extern NSString* __nonnull VLCMediaDurationChanged;
+extern NSString* __nonnull VLCMediaStateChanged;
+extern NSString* __nonnull VLCMediaSubItemAdded;
+extern NSString* __nonnull VLCMediaParsedChanged;
 
 typedef NS_ENUM(NSInteger, VLCMediaState) {
     VLCMediaStateNothingSpecial = 0,
@@ -27,6 +34,7 @@ typedef NS_ENUM(NSInteger, VLCMediaState) {
 @property (nonatomic, readonly) VLCMediaState state;
 @property (nonatomic, readonly) NSTimeInterval duration;
 @property (nonatomic, readonly) BOOL parsed;
+@property (nonatomic, readonly, nonnull) NSArray<VLCMediaTrack*>* tracks;
 
 - (void)parse;
 - (void)parse:(BOOL)async;
