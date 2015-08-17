@@ -35,6 +35,7 @@ typedef NS_ENUM(NSInteger, VLCMediaState) {
 @property (nonatomic, readonly) NSTimeInterval duration;
 @property (nonatomic, readonly) BOOL parsed;
 @property (nonatomic, readonly, nonnull) NSArray<VLCMediaTrack*>* tracks;
+@property (nonatomic, readonly) NSSize videoSize;
 
 - (void)parse;
 - (void)parse:(BOOL)async;
@@ -43,6 +44,9 @@ typedef NS_ENUM(NSInteger, VLCMediaState) {
 @end
 
 @interface VLCMedia (ImageCapture)
+
+- (void)generatePreviewImageFor:(NSArray<NSNumber*>* __nonnull)time
+               completionHander:(void (^ __nonnull)(__nullable CGImageRef image, NSError* __nullable error))handler;
 
 - (void)generatePreviewImageAt:(NSTimeInterval)start
               completionHander:(void (^ __nonnull)(__nullable CGImageRef image,  NSError* __nullable error))handler;

@@ -156,6 +156,14 @@ static void HandleMediaPlayerMediaChanged(const libvlc_event_t* event, void* sel
 }
 
 - (void)setTime:(NSTimeInterval)newTime completionBlock:(void (^)(VLCMediaPlayer* mediaPlayer, NSTimeInterval time))block {
+    {
+        VLCMediaPlayerState state = self.state;
+
+        if ((state != VLCMediaPlayerStatePlaying) || (state != VLCMediaPlayerStatePaused)) {
+            [self play];
+        }
+    }
+
     libvlc_media_player_set_time(_player, (libvlc_time_t)(newTime * 1000));
 
     dispatch_source_t timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
@@ -163,7 +171,7 @@ static void HandleMediaPlayerMediaChanged(const libvlc_event_t* event, void* sel
     dispatch_source_set_event_handler(timer, ^{
         NSTimeInterval time = self.time;
     
-        if (time >= newTime) {
+        if (time > newTime) {
             block(self, time);
             dispatch_source_cancel(timer);
         }

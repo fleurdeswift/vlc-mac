@@ -173,6 +173,23 @@ static void HandleMediaParsedChanged(const libvlc_event_t* event, void* self) {
     return results;
 }
 
+- (NSSize)videoSize {
+    libvlc_media_track_t** vtracks = NULL;
+    int                    trackCount = libvlc_media_tracks_get(_media, &vtracks);
+
+    for (int index = 0; index < trackCount; index++) {
+        if (vtracks[index]->i_type == libvlc_track_video) {
+            NSSize s = NSMakeSize(vtracks[index]->video->i_width, vtracks[index]->video->i_height);
+
+            libvlc_media_tracks_release(vtracks, trackCount);
+            return s;
+        }
+    }
+
+    libvlc_media_tracks_release(vtracks, trackCount);
+    return NSZeroSize;
+}
+
 @end
 
 @implementation VLCMedia (Private)

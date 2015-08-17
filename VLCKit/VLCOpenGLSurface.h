@@ -18,11 +18,12 @@ extern NSString *IOSurfaceConfigured;
 extern NSString *IOSurfaceChanged;
 
 @interface VLCOpenGLSurface : NSObject <VLCIOSurface>
+@property (nonatomic) GLuint program;
 - (void)render;
 @end
 
 @interface VLCOpenGLGlobal : NSObject
-@property (weak) NSOpenGLContext *sharedGL;
+@property (nonatomic, weak) NSOpenGLContext *sharedGL;
 
 + (NSOpenGLContext*)sharedContext;
 @end
