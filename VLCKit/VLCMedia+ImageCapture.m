@@ -256,32 +256,55 @@ static void dataFree(void* context, const void* data, size_t length) {
     [self generatePreviewImageFor:@[@(time)] completionHander:handler];
 }
 
-- (void)generatePreviewImagesAtStart:(NSTimeInterval)start
-                                 end:(NSTimeInterval)end
-                               count:(NSInteger)count
-                    completionHander:(void (^ __nonnull)(NSArray* __nullable images, NSError* __nullable error))handler {
+- (NSArray<NSNumber*>*)timesForStart:(NSTimeInterval)start end:(NSTimeInterval)end count:(NSInteger)count {
     NSTimeInterval duration = self.duration - 0.01;
     
     if (start < 0) {
-        handler(nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil]);
-        return;
+        return [NSArray array];
     }
     
     if (end > duration) {
         end = duration;
+
+        if (end > (60 * 20)) {
+            // For video longer than 20 minutes, we intentionally skip the
+            // last two minutes if we can.
+            end -= (60 * 2);
+
+            if (start > end) {
+                end = duration;
+            }
+        }
     }
     
     if (start > end) {
-        handler(nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil]);
-        return;
+        return [NSArray array];
     }
     
-    NSTimeInterval             length  = (end - start) / (NSTimeInterval)count;
+    NSTimeInterval             length  = (end - start) / (NSTimeInterval)(count + 2);
     NSMutableArray<NSNumber*>* times   = [NSMutableArray array];
-    NSTimeInterval             current = start;
+    NSTimeInterval             current = start + length;
     
     for (NSInteger index = 0; index < count; ++index, current += length) {
         [times addObject:@(current)];
+    }
+
+    return [times copy];
+}
+
+- (NSArray<NSNumber*>* __nonnull)times:(NSInteger)count {
+    return [self timesForStart:0 end:FLT_MAX count:count];
+}
+
+- (void)generatePreviewImagesAtStart:(NSTimeInterval)start
+                                 end:(NSTimeInterval)end
+                               count:(NSInteger)count
+                    completionHander:(void (^ __nonnull)(NSArray* __nullable images, NSError* __nullable error))handler {
+    NSArray<NSNumber*>* times = [self timesForStart:start end:end count:count];
+
+    if (times.count == 0) {
+        handler(nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil]);
+        return;
     }
     
     NSMutableArray* results = [NSMutableArray arrayWithCapacity:count];
