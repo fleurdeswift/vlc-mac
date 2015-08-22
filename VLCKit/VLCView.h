@@ -14,9 +14,9 @@
 IB_DESIGNABLE
 @interface VLCView : NSView <VLCIOSurfaceView>
 @property (nonatomic, retain) VLCMediaPlayer* mediaPlayer;
-@property (nonatomic, retain) NSColor *backgroundColor;
 @property (nonatomic, retain) id <VLCIOSurface> surface;
 @property (nonatomic, retain, readonly) id <VLCIOSurfaceView> surfaceView;
 
+@property (nonatomic, retain) IBInspectable NSColor *backgroundColor;
 @property (nonatomic, assign) IBInspectable BOOL preserveInitialSize;
 @end

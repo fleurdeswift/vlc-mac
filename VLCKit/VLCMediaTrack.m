@@ -20,6 +20,29 @@ enum es_format_category_e
 extern const char * vlc_fourcc_GetDescription( int i_cat, unsigned int i_fourcc );
 
 @implementation VLCMediaTrack
+
+- (NSString *)codecName
+{
+    int track_type = UNKNOWN_ES;
+
+    if (_trackType == VLCTrackTypeAudio) {
+        track_type = AUDIO_ES;
+    }
+    else if (_trackType == VLCTrackTypeVideo) {
+        track_type = VIDEO_ES;
+    }
+    else if (_trackType == VLCTrackTypeText) {
+        track_type = SPU_ES;
+    }
+
+    const char *ret = vlc_fourcc_GetDescription(track_type, _codecID);
+
+    if (ret)
+        return [NSString stringWithUTF8String:ret];
+
+    return @"";
+}
+
 @end
 
 @implementation VLCMediaTrack (Private)
@@ -70,28 +93,6 @@ extern const char * vlc_fourcc_GetDescription( int i_cat, unsigned int i_fourcc 
     default:
         return [[VLCMediaTrack alloc] initWithTrack:track];
     }
-}
-
-- (NSString *)codecName
-{
-    int track_type = UNKNOWN_ES;
-
-    if (_trackType == VLCTrackTypeAudio) {
-        track_type = AUDIO_ES;
-    }
-    else if (_trackType == VLCTrackTypeVideo) {
-        track_type = VIDEO_ES;
-    }
-    else if (_trackType == VLCTrackTypeText) {
-        track_type = SPU_ES;
-    }
-
-    const char *ret = vlc_fourcc_GetDescription(track_type, _codecID);
-
-    if (ret)
-        return [NSString stringWithUTF8String:ret];
-
-    return @"";
 }
 
 - (NSString *)description {

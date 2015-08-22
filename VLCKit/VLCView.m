@@ -117,8 +117,10 @@
 }
 
 - (void)drawRect:(NSRect)dirtyRect {
-    [_backgroundColor setFill];
-    NSRectFill(dirtyRect);
+    if (_backgroundColor) {
+        [_backgroundColor setFill];
+        NSRectFill(dirtyRect);
+    }
 }
 
 @end

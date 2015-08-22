@@ -36,6 +36,23 @@ NSString *VLCMediaPlayerMediaChanged    = @"VLCMediaPlayerMediaChanged";
     return self;
 }
 
+- (nullable instancetype)initWithMedias:(nonnull NSArray<VLCMedia*>*)medias error:(out NSError * __nullable * __nullable)error
+{
+    if (medias.count == 0) {
+        if (error) {
+            *error = [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil];
+        }
+
+        return nil;
+    }
+
+    if (medias.count == 1) {
+        return [self initWithMedia:medias[0] error: error];
+    }
+
+    return (VLCMediaPlayer*)[[VLCMediaPlayerGroup alloc] initWithMedias:medias error:error];
+}
+
 - (void)dealloc {
     [self clearEvents];
     libvlc_media_player_release(_player);
@@ -45,6 +62,7 @@ static void HandleMediaInstanceStateChanged(const libvlc_event_t* event, void* s
     VLCMediaPlayer* media = (__bridge VLCMediaPlayer*)self;
 
     dispatch_async(dispatch_get_main_queue(), ^{
+        [media _stateChanged];
         [[NSNotificationCenter defaultCenter] postNotificationName:VLCMediaPlayerStateChanged object:media];
     });
 }
@@ -218,6 +236,101 @@ static void HandleMediaPlayerMediaChanged(const libvlc_event_t* event, void* sel
 
 - (libvlc_media_player_t*)impl {
     return _player;
+}
+
+- (void)_stateChanged {
+}
+
+@end
+
+@implementation VLCMediaPlayerGroup {
+    NSArray<VLCMedia*>* _medias;
+    NSInteger           _index;
+    NSTimeInterval*     _times;
+    NSTimeInterval      _duration;
+}
+
+- (nullable instancetype)initWithMedias:(nonnull NSArray<VLCMedia*>*)medias error:(out NSError * __nullable * __nullable)error
+{
+    if (!(self = [super initWithMedia:medias[0] error:error]))
+        return nil;
+
+    _medias   = medias;
+    _times    = (NSTimeInterval*)malloc(sizeof(*_times) * _medias.count);
+    _duration = 0;
+
+    NSInteger index = 0;
+
+    for (VLCMedia* media in _medias) {
+        if (!media.parsed) {
+            [media parse];
+        }
+
+        NSInteger d = media.duration;
+
+        _duration      += d;
+        _times[index++] = d;
+    }
+
+    return self;
+}
+
+- (void)dealloc {
+    free(_times);
+}
+
+- (NSTimeInterval)duration {
+    return _duration;
+}
+
+- (void)setTime:(NSTimeInterval)newTime completionBlock:(void (^)(VLCMediaPlayer* mediaPlayer, NSTimeInterval time))block {
+    [[NSException exceptionWithName:@"NOTIMPL" reason:@"Not Implemented" userInfo:nil] raise];
+}
+
+- (float)position {
+    return self.time / _duration;
+}
+
+- (void)setPosition:(float)newPosition {
+    self.time = newPosition * _duration;
+}
+
+- (NSTimeInterval)time {
+    NSTimeInterval current = [super time];
+
+    for (NSInteger index = 0; index < _index; index++) {
+        current += _times[index];
+    }
+
+    return current;
+}
+
+- (void)setTime:(NSTimeInterval)newTime {
+    if (newTime <= 0) {
+        if (_index != 0) {
+            _index = 0;
+            libvlc_media_player_set_media(self.impl, _medias[0].impl);
+        }
+
+        libvlc_media_player_set_time(self.impl, 0);
+        return;
+    }
+
+    NSTimeInterval current = 0;
+    NSInteger      index   = 0;
+
+    for (VLCMedia* media in _medias) {
+        NSTimeInterval next = current + _times[index];
+
+        if (next > newTime) {
+            _index = index;
+            libvlc_media_player_set_media(self.impl, media.impl);
+            [super setTime:newTime - current];
+        }
+
+        current = next;
+        index++;
+    }
 }
 
 @end

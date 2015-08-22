@@ -12,5 +12,12 @@
 #include <vlc/libvlc_media_player.h>
 
 @interface VLCMediaPlayer (Private)
-@property (assign, readonly, nonatomic) libvlc_media_player_t* impl;
+@property (assign, readonly, nonnull, nonatomic) libvlc_media_player_t* impl;
+
+- (void)_stateChanged;
+
+@end
+
+@interface VLCMediaPlayerGroup : VLCMediaPlayer
+- (nullable instancetype)initWithMedias:(nonnull NSArray<VLCMedia*>*)medias error:(out NSError * __nullable * __nullable)error;
 @end

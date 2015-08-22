@@ -27,6 +27,7 @@ typedef NS_ENUM(NSInteger, VLCMediaPlayerState) {
 
 @interface VLCMediaPlayer : NSObject
 - (nullable instancetype)initWithMedia:(nonnull VLCMedia*)media error:(out NSError * __nullable * __nullable)error;
+- (nullable instancetype)initWithMedias:(nonnull NSArray<VLCMedia*>*)medias error:(out NSError * __nullable * __nullable)error;
 
 @property (nonatomic, readonly, nullable) VLCMedia* media;
 
