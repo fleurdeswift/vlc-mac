@@ -31,6 +31,7 @@
     self                                  = [super initWithFrame:rect pixelFormat:_sharedContext.pixelFormat];
     self.openGLContext                    = [[NSOpenGLContext alloc] initWithFormat:_sharedContext.pixelFormat shareContext:_sharedContext];
     self.wantsBestResolutionOpenGLSurface = YES;
+    self.wantsLayer                       = YES;
     return self;
 }
 

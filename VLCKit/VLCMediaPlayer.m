@@ -182,7 +182,7 @@ static void HandleMediaPlayerMediaChanged(const libvlc_event_t* event, void* sel
         }
     }
 
-    libvlc_media_player_set_time(_player, (libvlc_time_t)(newTime * 1000));
+    self.time = newTime;
 
     dispatch_source_t timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
     dispatch_source_set_timer(timer, dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_MSEC), NSEC_PER_MSEC, NSEC_PER_MSEC);
@@ -281,10 +281,6 @@ static void HandleMediaPlayerMediaChanged(const libvlc_event_t* event, void* sel
 
 - (NSTimeInterval)duration {
     return _duration;
-}
-
-- (void)setTime:(NSTimeInterval)newTime completionBlock:(void (^)(VLCMediaPlayer* mediaPlayer, NSTimeInterval time))block {
-    [[NSException exceptionWithName:@"NOTIMPL" reason:@"Not Implemented" userInfo:nil] raise];
 }
 
 - (float)position {

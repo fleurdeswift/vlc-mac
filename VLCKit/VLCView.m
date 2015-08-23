@@ -21,7 +21,7 @@
 
     _surface         = surfaceView.surface;
     _surfaceView     = surfaceView;
-    _backgroundColor = [NSColor blackColor];
+    _backgroundColor = nil;
     [self addSubview:surfaceView];
 }
 

@@ -44,38 +44,38 @@ static void dataFree(void* context, const void* data, size_t length) {
 
     VLCMediaPlayer *mediaPlayer;
 
-    NSMutableArray<NSNumber*> *remaining;
-    void (^completionHander)(__nullable CGImageRef image, NSError* __nullable error);
+    NSTimeInterval (^completionHander)(__nullable CGImageRef image, NSError* __nullable error);
 
     NSInteger frame;
     NSInteger lastFrameCaptured;
 }
 
-- (instancetype)initWithTimes:(NSArray<NSNumber*>*)time media:(VLCMedia*)media andCompletionHandler:(void (^ __nonnull)(__nullable CGImageRef image, NSError* __nullable error))handler {
-    self = [super init];
-    if (!self) {
-        return nil;
-    }
-
-    if (time.count == 0) {
-        handler(nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil]);
-        return nil;
-    }
-    
+- (instancetype)initWithTimeAt:(NSTimeInterval)time media:(VLCMedia*)media completionHandler:(NSTimeInterval (^ __nonnull)(__nullable CGImageRef image, NSError* __nullable error))handler {
     if (!media.parsed) {
         [media parse];
     }
 
     NSError* error = nil;
 
-    mediaPlayer      = [[VLCMediaPlayer alloc] initWithMedia:media error:&error];
-    completionHander = handler;
+    VLCMediaPlayer* mp = [[VLCMediaPlayer alloc] initWithMedia:media error:&error];
 
-    if (mediaPlayer == nil) {
+    if (mp == nil) {
         handler(nil, error);
         return nil;
     }
-    
+
+    return [self initWithTimeAt:time size:media.videoSize mediaPlayer:mp completionHandler:handler];
+}
+
+- (instancetype)initWithTimeAt:(NSTimeInterval)time size:(NSSize)size mediaPlayer:(VLCMediaPlayer* __nonnull)mp completionHandler:(NSTimeInterval (^ __nonnull)(__nullable CGImageRef image, NSError* __nullable error))handler {
+    self = [super init];
+    if (!self) {
+        return nil;
+    }
+
+    mediaPlayer      = mp;
+    completionHander = handler;
+
     [mediaPlayer setAudioModule:@"adummy"];
 
     CFTypeRef surfaceCT = (__bridge CFTypeRef)self;
@@ -97,7 +97,6 @@ static void dataFree(void* context, const void* data, size_t length) {
 
     [context makeCurrentContext];
 
-    NSSize size = media.videoSize;
     width  = (GLint)size.width;
     height = (GLint)size.height;
     
@@ -120,9 +119,7 @@ static void dataFree(void* context, const void* data, size_t length) {
 
     [NSOpenGLContext clearCurrentContext];
 
-    remaining = [time mutableCopy];
-
-    [self seek:remaining.firstObject.floatValue];
+    [self seek:time];
     return self;
 }
 
@@ -178,20 +175,20 @@ static void dataFree(void* context, const void* data, size_t length) {
         CGDataProviderRelease(dataRef);
         CGColorSpaceRelease(colorspace);
 
+        NSTimeInterval nextTime = -1;
+
         @try {
-            completionHander(image, nil);
+            nextTime = completionHander(image, nil);
         }
         @finally {
             CGImageRelease(image);
-            [remaining removeObjectAtIndex:0];
-            
-            if (remaining.count == 0) {
+
+            if (nextTime < 0) {
                 completionHander(nil, nil);
                 [self clean];
                 return;
             }
             
-            NSTimeInterval nextTime = [remaining firstObject].floatValue;
             NSTimeInterval duration = mediaPlayer.duration - 0.01;
             
             if (nextTime > duration) {
@@ -247,13 +244,54 @@ static void dataFree(void* context, const void* data, size_t length) {
 @implementation VLCMedia (ImageCapture)
 
 - (void)generatePreviewImageFor:(NSArray<NSNumber*>*)time
-               completionHander:(void (^ __nonnull)(__nullable CGImageRef image, NSError* __nullable error))handler {
-    [[[VLCMediaCapture alloc] initWithTimes:time media:self andCompletionHandler:handler] description];
+              completionHandler:(void (^ __nonnull)(__nullable CGImageRef image, NSError* __nullable error))handler {
+    if (time.count == 0) {
+        handler(nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil]);
+        return;
+    }
+
+    NSTimeInterval             first     = [time firstObject].doubleValue;
+    NSMutableArray<NSNumber*>* remaining = [time mutableCopy];
+
+    [remaining removeObjectAtIndex:0];
+    [self generatePreviewImageAt:first completionHandler:^(CGImageRef image, NSError* error) {
+        handler(image, error);
+
+        if (remaining.count == 0) {
+            return (NSTimeInterval)-1;
+        }
+
+        NSTimeInterval nextTime = [remaining firstObject].doubleValue;
+
+        [remaining removeObjectAtIndex:0];
+        return nextTime;
+    }];
+}
+
++ (void)generatePreviewImageAt:(NSTimeInterval)start
+                          size:(NSSize)size
+                      inMedias:(NSArray<VLCMedia*>* __nonnull)medias
+             completionHandler:(NSTimeInterval (^ __nonnull)(__nullable CGImageRef image,  NSError* __nullable error))handler {
+    NSError*        error;
+    VLCMediaPlayer* mediaPlayer = [[VLCMediaPlayer alloc] initWithMedias:medias error:&error];
+
+    if (error != nil) {
+        handler(nil, error);
+        return;
+    }
+
+    for (VLCMedia* media in medias) {
+        if (!media.parsed) {
+            [media parse];
+        }
+    }
+
+    [[[VLCMediaCapture alloc] initWithTimeAt:start size:size mediaPlayer:mediaPlayer completionHandler:handler] description];
 }
 
 - (void)generatePreviewImageAt:(NSTimeInterval)time
-              completionHander:(void (^ __nonnull)(__nullable CGImageRef image, NSError* __nullable error))handler {
-    [self generatePreviewImageFor:@[@(time)] completionHander:handler];
+             completionHandler:(NSTimeInterval (^ __nonnull)(__nullable CGImageRef image, NSError* __nullable error))handler {
+    [[[VLCMediaCapture alloc] initWithTimeAt:time media:self completionHandler:handler] description];
 }
 
 - (NSArray<NSNumber*>*)timesForStart:(NSTimeInterval)start end:(NSTimeInterval)end count:(NSInteger)count {
@@ -299,7 +337,7 @@ static void dataFree(void* context, const void* data, size_t length) {
 - (void)generatePreviewImagesAtStart:(NSTimeInterval)start
                                  end:(NSTimeInterval)end
                                count:(NSInteger)count
-                    completionHander:(void (^ __nonnull)(NSArray* __nullable images, NSError* __nullable error))handler {
+                   completionHandler:(void (^ __nonnull)(NSArray* __nullable images, NSError* __nullable error))handler {
     NSArray<NSNumber*>* times = [self timesForStart:start end:end count:count];
 
     if (times.count == 0) {
@@ -309,7 +347,7 @@ static void dataFree(void* context, const void* data, size_t length) {
     
     NSMutableArray* results = [NSMutableArray arrayWithCapacity:count];
     
-    [self generatePreviewImageFor:times completionHander:^(CGImageRef image, NSError* error) {
+    [self generatePreviewImageFor:times completionHandler:^(CGImageRef image, NSError* error) {
         if (image != NULL) {
             [results addObject:(__bridge id)image];
         }

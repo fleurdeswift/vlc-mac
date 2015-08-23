@@ -174,6 +174,10 @@ static void HandleMediaParsedChanged(const libvlc_event_t* event, void* self) {
 }
 
 - (NSSize)videoSize {
+    if (!libvlc_media_is_parsed(_media)) {
+        libvlc_media_parse(_media);
+    }
+
     libvlc_media_track_t** vtracks = NULL;
     int                    trackCount = libvlc_media_tracks_get(_media, &vtracks);
 
