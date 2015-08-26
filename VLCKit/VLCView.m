@@ -11,6 +11,30 @@
 #import "VLCMediaPlayer+Private.h"
 #import "VLCOpenGLView.h"
 
+static NSSize sizeWithHeightPreservingAspectRatio(NSSize self, CGFloat height) {
+    if (self.height == 0) {
+        return NSZeroSize;
+    }
+
+    if (self.height < height) {
+        return self;
+    }
+
+    return NSMakeSize(floor(self.width / self.height * height), height);
+}
+
+static NSSize sizeWithWidthPreservingAspectRatio(NSSize self, CGFloat width) {
+    if (self.width == 0) {
+        return NSZeroSize;
+    }
+
+    if (self.width < width) {
+        return self;
+    }
+
+    return NSMakeSize(width, floor(self.height / self.width * width));
+}
+
 @implementation VLCView {
 }
 
@@ -109,8 +133,13 @@
 }
 
 - (NSSize)intrinsicContentSize {
-    if (self.preserveInitialSize) {
-        return self.bounds.size;
+    NSSize videoSize = ((NSView *)_surfaceView).intrinsicContentSize;
+
+    if (_targetHeight) {
+        return sizeWithHeightPreservingAspectRatio(videoSize, _targetHeight);
+    }
+    else if (_targetWidth) {
+        return sizeWithWidthPreservingAspectRatio(videoSize, _targetWidth);
     }
 
     return ((NSView *)_surfaceView).intrinsicContentSize;

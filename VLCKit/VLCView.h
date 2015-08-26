@@ -18,5 +18,6 @@ IB_DESIGNABLE
 @property (nonatomic, retain, readonly) id <VLCIOSurfaceView> surfaceView;
 
 @property (nonatomic, retain) IBInspectable NSColor *backgroundColor;
-@property (nonatomic, assign) IBInspectable BOOL preserveInitialSize;
+@property (nonatomic, assign) IBInspectable NSInteger targetWidth;
+@property (nonatomic, assign) IBInspectable NSInteger targetHeight;
 @end
